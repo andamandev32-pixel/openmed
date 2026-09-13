@@ -1,0 +1,79 @@
+{
+  "id": "terumo_br500",
+  "name": "Terumo BR-500",
+  "verified": true,
+  "source": "terumo_reader.py, terumo_cli.py, web_serial_example.html, Smart_OPD_Kiosk_V2/lib/utils/BloodPressureUtils.dart",
+
+  "notes": [
+    "ETX เป็นตัวจบเฟรม แล้วตามด้วย BCC 1 ไบต์ — ไม่มี CR/LF เลย",
+    "ค่าความดันมาพร้อมเฟรม R1 ที่เครื่อง poll ออกมาเอง ไม่ต้อง handshake สำเร็จก็อ่านได้",
+    "baud ยังไม่ได้ข้อสรุป: ห้องทดลอง test_terumo ใช้ 19200 ทุกไฟล์ แต่ Smart_OPD_Kiosk_V2 ที่ใช้งานจริงตั้ง 9600 และคอมเมนต์ 19200 ทิ้ง",
+    "ไบต์ตอบกลับ (handshake) ที่ถูกต้องยังไม่ยืนยัน — terumo_reader.py ยังไล่ลอง 11 แบบ"
+  ],
+
+  "port": {
+    "baud": 9600,
+    "dataBits": 8,
+    "parity": "none",
+    "stopBits": 1,
+    "alternateBauds": [19200, 38400, 115200]
+  },
+
+  "framing": {
+    "stx": "0x02",
+    "etx": "0x03",
+    "checksum": "sum8",
+    "checksumRange": "stx-to-etx",
+    "lineTerminator": null
+  },
+
+  "body": {
+    "delimiter": ",",
+    "recordId": "R1",
+    "minFields": 8,
+    "template": [
+      "R1",
+      "{deviceId}",
+      "{date}",
+      "{time}",
+      "{sys}",
+      "{map}",
+      "{dia}",
+      "{pulse}",
+      "0000",
+      "0000",
+      "00000",
+      "000"
+    ]
+  },
+
+  "fields": {
+    "deviceId": 1,
+    "date": 2,
+    "time": 3,
+    "sys": 4,
+    "map": 5,
+    "dia": 6,
+    "pulse": 7
+  },
+
+  "widths": {
+    "deviceId": 9,
+    "sys": 3,
+    "map": 3,
+    "dia": 3,
+    "pulse": 3
+  },
+
+  "formats": {
+    "date": "%y%m%d",
+    "time": "%H%M%S"
+  },
+
+  "defaults": {
+    "deviceId": "000000000",
+    "sys": 120,
+    "dia": 80,
+    "pulse": 75
+  }
+}

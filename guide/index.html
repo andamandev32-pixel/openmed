@@ -1,0 +1,1442 @@
+<meta charset="utf-8">
+<title>RS-232 สำหรับเครื่องมือแพทย์</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&display=swap">
+<style>
+/* ==========================================================================
+   โทเคนธีม — ต้นฉบับอยู่ที่ openmed/brand/tokens.css
+   ฝังไว้ที่นี่เพราะไฟล์นี้ต้อง self-contained ตอนเผยแพร่
+   ========================================================================== */
+:root{
+  --font-sans:'Anuphan',Tahoma,Arial,sans-serif;
+  --font-mono:'Consolas','Courier New',ui-monospace,monospace;
+  --brand:#058739; --brand-dark:#046C2E; --brand-tint:#EFFBF4;
+  --info:#3579EA; --info-tint:#EEF4FE;
+  --ink:#111111; --ink-2:#444444; --ink-3:#666666; --ink-4:#888888;
+  --line:#DFDFDF; --line-soft:#F0F0F0;
+  --surface:#FFFFFF; --surface-2:#F5F5F5; --surface-3:#F0F0F0;
+  --warn:#B45309; --warn-tint:#FFF7ED;
+  --danger:#B91C1C; --danger-tint:#FEF2F2;
+  --hex-frame:#058739; --hex-check:#B45309; --hex-value:#3579EA; --hex-body:#444444;
+  --radius:6px; --radius-lg:10px;
+  --measure:70ch;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --brand:#34C26B; --brand-dark:#6FDC97; --brand-tint:#0E2A1A;
+    --info:#7FB0FF; --info-tint:#14213A;
+    --ink:#F2F2F2; --ink-2:#D2D2D2; --ink-3:#A8A8A8; --ink-4:#8A8A8A;
+    --line:#333333; --line-soft:#262626;
+    --surface:#181818; --surface-2:#121212; --surface-3:#202020;
+    --warn:#E9A13B; --warn-tint:#2B1E0C;
+    --danger:#F08A8A; --danger-tint:#2C1414;
+    --hex-frame:#34C26B; --hex-check:#E9A13B; --hex-value:#7FB0FF; --hex-body:#D2D2D2;
+  }
+}
+:root[data-theme="dark"]{
+  --brand:#34C26B; --brand-dark:#6FDC97; --brand-tint:#0E2A1A;
+  --info:#7FB0FF; --info-tint:#14213A;
+  --ink:#F2F2F2; --ink-2:#D2D2D2; --ink-3:#A8A8A8; --ink-4:#8A8A8A;
+  --line:#333333; --line-soft:#262626;
+  --surface:#181818; --surface-2:#121212; --surface-3:#202020;
+  --warn:#E9A13B; --warn-tint:#2B1E0C;
+  --danger:#F08A8A; --danger-tint:#2C1414;
+  --hex-frame:#34C26B; --hex-check:#E9A13B; --hex-value:#7FB0FF; --hex-body:#D2D2D2;
+}
+
+*{box-sizing:border-box}
+body{
+  font-family:var(--font-sans); background:var(--surface); color:var(--ink-2);
+  line-height:1.75; font-size:16px; margin:0;
+}
+.page{max-width:1180px; margin:0 auto; padding-inline:20px; padding-block:0 80px}
+
+/* ---------- หัวเอกสาร ---------- */
+.masthead{border-bottom:1px solid var(--line); padding-block:44px 30px; margin-bottom:36px}
+.eyebrow{
+  font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--brand); font-weight:600; margin:0 0 14px
+}
+h1{
+  font-size:clamp(29px,5vw,44px); line-height:1.25; color:var(--ink);
+  font-weight:700; margin:0 0 16px; text-wrap:balance; letter-spacing:-.01em
+}
+.standfirst{font-size:clamp(16px,2.2vw,18.5px); color:var(--ink-3); max-width:var(--measure); margin:0}
+.meta{
+  display:flex; flex-wrap:wrap; gap:10px 26px; margin-top:26px;
+  font-size:13.5px; color:var(--ink-4)
+}
+.meta b{color:var(--ink-2); font-weight:600}
+
+/* ---------- โครงสองคอลัมน์ ---------- */
+.shell{display:grid; grid-template-columns:230px minmax(0,1fr); gap:52px; align-items:start}
+@media (max-width:900px){ .shell{grid-template-columns:1fr; gap:0} }
+
+nav.toc{position:sticky; top:24px; max-height:calc(100vh - 48px); overflow-y:auto; font-size:13.5px}
+@media (max-width:900px){
+  nav.toc{position:static; max-height:none; border:1px solid var(--line);
+          border-radius:var(--radius-lg); padding:18px 20px; margin-bottom:34px;
+          background:var(--surface-2)}
+}
+nav.toc h2{
+  font-size:11.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-4);
+  margin:0 0 12px; font-weight:600
+}
+nav.toc ol{list-style:none; margin:0 0 20px; padding:0}
+nav.toc li{margin-bottom:3px}
+nav.toc a{color:var(--ink-3); text-decoration:none; display:block; padding:3px 0; line-height:1.45}
+nav.toc a:hover{color:var(--brand)}
+nav.toc .part{
+  color:var(--ink); font-weight:600; margin:18px 0 8px; font-size:12.5px;
+  letter-spacing:.04em; padding-top:12px; border-top:1px solid var(--line)
+}
+nav.toc .part:first-child{margin-top:0; border-top:0; padding-top:0}
+
+main{min-width:0; max-width:var(--measure)}
+main p,main li{max-width:var(--measure)}
+
+/* ---------- ภาคและบท ---------- */
+.part-head{margin:72px 0 34px; padding-top:26px; border-top:3px solid var(--brand)}
+.part-head:first-child{margin-top:0}
+.part-num{font-size:12px; letter-spacing:.15em; text-transform:uppercase; color:var(--brand); font-weight:600}
+.part-head h2{font-size:clamp(23px,3.4vw,30px); color:var(--ink); margin:8px 0 10px; font-weight:700; text-wrap:balance}
+.part-head p{color:var(--ink-3); margin:0; font-size:15.5px}
+
+section.ch{margin:0 0 52px; scroll-margin-top:20px}
+section.ch h3{
+  font-size:20.5px; color:var(--ink); font-weight:600; margin:44px 0 14px;
+  text-wrap:balance; line-height:1.4
+}
+section.ch h3 .n{color:var(--ink-4); font-weight:500; font-variant-numeric:tabular-nums; margin-right:8px}
+h4{font-size:16.5px; color:var(--ink); font-weight:600; margin:28px 0 10px}
+p{margin:0 0 15px}
+ul,ol{margin:0 0 15px; padding-left:22px}
+li{margin-bottom:7px}
+li::marker{color:var(--ink-4)}
+strong{color:var(--ink); font-weight:600}
+a{color:var(--info)}
+code{
+  font-family:var(--font-mono); font-size:.885em; background:var(--surface-3);
+  padding:2px 5px; border-radius:3px; color:var(--ink)
+}
+hr{border:0; border-top:1px solid var(--line); margin:34px 0}
+
+/* ---------- ป้ายสถานะ — แกนความน่าเชื่อถือของเอกสาร ---------- */
+.chip{
+  display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:600;
+  padding:2px 9px; border-radius:100px; white-space:nowrap; vertical-align:middle
+}
+.chip.ok{background:var(--brand-tint); color:var(--brand-dark); border:1px solid color-mix(in srgb,var(--brand) 30%,transparent)}
+.chip.un{background:var(--warn-tint); color:var(--warn); border:1px solid color-mix(in srgb,var(--warn) 30%,transparent)}
+
+/* ---------- กล่อง ---------- */
+.box{border-left:3px solid var(--line); padding:16px 20px; margin:24px 0; border-radius:0 var(--radius) var(--radius) 0}
+.box p:last-child,.box ul:last-child,.box ol:last-child{margin-bottom:0}
+.box .bt{font-weight:600; color:var(--ink); margin-bottom:6px; display:block}
+.box.key{background:var(--brand-tint); border-left-color:var(--brand)}
+.box.key .bt{color:var(--brand-dark)}
+.box.warn{background:var(--warn-tint); border-left-color:var(--warn)}
+.box.warn .bt{color:var(--warn)}
+.box.info{background:var(--info-tint); border-left-color:var(--info)}
+.box.stop{background:var(--danger-tint); border-left-color:var(--danger)}
+.box.stop .bt{color:var(--danger)}
+
+/* ---------- ตาราง ---------- */
+.tw{overflow-x:auto; margin:22px 0; border:1px solid var(--line); border-radius:var(--radius)}
+table{border-collapse:collapse; width:100%; font-size:14.5px; min-width:460px}
+th,td{padding:10px 14px; text-align:left; border-bottom:1px solid var(--line-soft); vertical-align:top}
+th{background:var(--surface-2); color:var(--ink); font-weight:600; font-size:13px; white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td code{background:transparent; padding:0}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- HEX dump ---------- */
+.hex{
+  font-family:var(--font-mono); font-size:13px; line-height:2.05; background:var(--surface-3);
+  border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px;
+  margin:20px 0; overflow-x:auto; white-space:pre; color:var(--hex-body)
+}
+.hex b{font-weight:700}
+.f{color:var(--hex-frame); font-weight:700}   /* STX / ETX */
+.c{color:var(--hex-check); font-weight:700}   /* checksum  */
+.v{color:var(--hex-value); font-weight:700}   /* ค่าที่วัดได้ */
+.legend{display:flex; flex-wrap:wrap; gap:8px 20px; font-size:13px; color:var(--ink-3); margin:-8px 0 24px}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.sw{width:11px; height:11px; border-radius:2px; display:inline-block}
+
+pre.code{
+  font-family:var(--font-mono); font-size:13px; line-height:1.7; background:var(--surface-3);
+  border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px;
+  margin:20px 0; overflow-x:auto; color:var(--ink-2)
+}
+
+/* ---------- ขั้นตอนที่เป็นลำดับจริง ---------- */
+ol.steps{list-style:none; padding:0; counter-reset:s; margin:22px 0}
+ol.steps>li{
+  counter-increment:s; position:relative; padding-left:44px; margin-bottom:22px; min-height:30px
+}
+ol.steps>li::before{
+  content:counter(s); position:absolute; left:0; top:1px; width:28px; height:28px;
+  border-radius:50%; background:var(--brand); color:#fff; font-weight:600; font-size:14px;
+  display:flex; align-items:center; justify-content:center; font-variant-numeric:tabular-nums
+}
+ol.steps>li b{display:block; color:var(--ink); margin-bottom:3px}
+
+/* ---------- worksheet ที่ให้กรอก ---------- */
+.tw.sheet table{background:repeating-linear-gradient(var(--surface),var(--surface))}
+.blank{color:var(--ink-4); font-style:normal}
+.tw.sheet th{background:var(--warn-tint); color:var(--warn)}
+
+figure{margin:26px 0}
+figure svg{width:100%; height:auto; display:block; max-width:100%}
+figcaption{font-size:13.5px; color:var(--ink-4); margin-top:10px; text-align:center}
+
+.foot{border-top:1px solid var(--line); margin-top:64px; padding-top:26px; font-size:14px; color:var(--ink-4)}
+.foot a{color:var(--info)}
+</style>
+
+<div class="page">
+
+<header class="masthead">
+  <p class="eyebrow">OpenMed · Smart OPD ตอนที่ 1</p>
+  <h1>ดึงข้อมูลจากเครื่องมือแพทย์ผ่าน RS-232</h1>
+  <p class="standfirst">
+    เครื่องวัดความดันในโรงพยาบาลส่งข้อมูลออกมาตลอดเวลา แต่ส่วนใหญ่ไม่มีใครฟัง
+    คู่มือนี้พาไปตั้งแต่จับสายเส้นแรก จนค่าความดันวิ่งเข้าไปอยู่ใต้ชื่อคนไข้เอง
+    — และบอกตรง ๆ ว่าตรงไหนพิสูจน์แล้ว ตรงไหนยังไม่
+  </p>
+  <div class="meta">
+    <span><b>ผู้อ่าน</b> นักพัฒนา และคนที่อยากทำตาม</span>
+    <span><b>ทำตามได้</b> โดยไม่ต้องมีโรงพยาบาลหรือ HIS จริง</span>
+    <span><b>ปรับปรุง</b> 13 กันยายน 2569</span>
+  </div>
+</header>
+
+<div class="shell">
+
+<nav class="toc">
+  <h2>สารบัญ</h2>
+
+  <div class="part">ภาค 1 · พื้นฐานที่ใช้ได้ทุกเครื่อง</div>
+  <ol>
+    <li><a href="#c1">1 · ทำไมยังเป็น RS-232</a></li>
+    <li><a href="#c2">2 · พื้นฐาน 5 ข้อ</a></li>
+    <li><a href="#c3">3 · ตัวแปลง USB-to-Serial</a></li>
+    <li><a href="#c4">4 · หา COM port</a></li>
+    <li><a href="#c5">5 · Hercules</a></li>
+    <li><a href="#c6">6 · ถอดรหัส 6 ขั้น</a></li>
+    <li><a href="#c7">7 · เฟรม 4 ตระกูล</a></li>
+    <li><a href="#c8">8 · Device Profile</a></li>
+    <li><a href="#c9">9 · เครื่องแบบอื่น</a></li>
+    <li><a href="#c10">10 · เครื่องนี้ส่งได้ไหม</a></li>
+  </ol>
+
+  <div class="part">ภาค 2 · กรณีศึกษา 2 เครื่อง</div>
+  <ol>
+    <li><a href="#c11">11 · Terumo: ไล่หา baud</a></li>
+    <li><a href="#c12">12 · ถอดรหัสเฟรม R1</a></li>
+    <li><a href="#c13">13 · ซ้อมโดยไม่มีเครื่อง</a></li>
+    <li><a href="#c14">14 · จุดที่ยังไม่ยืนยัน</a></li>
+    <li><a href="#c15">15 · Omron: ตรวจก่อน</a></li>
+    <li><a href="#c16">16 · Worksheet ถอดรหัส</a></li>
+    <li><a href="#c17">17 · จำลอง Omron</a></li>
+    <li><a href="#c18">18 · เทียบ 2 เครื่อง</a></li>
+  </ol>
+
+  <div class="part">ภาค 3 · ต่อเป็นระบบ Smart OPD</div>
+  <ol>
+    <li><a href="#c19">19 · จุดยืน: จำลองทั้งเส้น</a></li>
+    <li><a href="#c20">20 · HN → ชื่อคนไข้</a></li>
+    <li><a href="#c21">21 · ผูกค่ากับคนไข้</a></li>
+  </ol>
+
+  <div class="part">ภาค 4 · ทดสอบและแก้ปัญหา</div>
+  <ol>
+    <li><a href="#c22">22 · ทดสอบทั้งเส้น</a></li>
+    <li><a href="#c23">23 · แก้ปัญหาตามอาการ</a></li>
+    <li><a href="#c24">24 · ภาคผนวก</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<div class="box key">
+  <span class="bt">อ่านข้อนี้ก่อน</span>
+  <p>เอกสารนี้แยก <span class="chip ok">✓ ยืนยันแล้ว</span> ออกจาก
+  <span class="chip un">⚠ ยังไม่ยืนยัน</span> ทุกจุด สิ่งที่ติดป้ายว่ายังไม่ยืนยัน
+  คือสิ่งที่ยังไม่ได้ทดสอบกับเครื่องจริง — เอาไปใช้ได้ แต่อย่าเอาไปอ้างเป็นสเปกของผู้ผลิต
+  ความน่าเชื่อถือของคู่มือมาจากการบอกให้ชัดว่าอะไรคืออะไร</p>
+</div>
+
+<p>ภาค 1 คือส่วนที่มีค่าที่สุด เพราะใช้ได้กับเครื่องอะไรก็ได้ — เครื่องชั่งน้ำหนัก
+เครื่องวัดออกซิเจน เครื่องตรวจน้ำตาล ไม่จำเป็นต้องเป็นเครื่องวัดความดัน
+และไม่จำเป็นต้องเป็นยี่ห้อเดียวกับที่ยกตัวอย่างในภาค 2</p>
+
+
+<!-- ==================== ภาค 1 ==================== -->
+<div class="part-head">
+  <div class="part-num">ภาค 1</div>
+  <h2>ดึงข้อมูลผ่าน RS-232 — พื้นฐานที่ใช้ได้ทุกเครื่อง</h2>
+  <p>อ่านจบภาคนี้แล้วเดินเข้าไปหาเครื่องอะไรก็ได้ในโรงพยาบาล แล้วเริ่มหาทางคุยกับมันได้</p>
+</div>
+
+<section class="ch" id="c1">
+<h3><span class="n">1</span>ทำไมเครื่องมือแพทย์ยังใช้ RS-232 อยู่</h3>
+
+<p>RS-232 เป็นมาตรฐานจากยุค 1960 ที่ยังอยู่ในห้องตรวจปี 2569 ไม่ใช่เพราะไม่มีใครอัปเกรด
+แต่เพราะมันเหมาะกับงานนี้จริง ๆ</p>
+
+<ul>
+  <li><strong>เครื่องมือแพทย์อายุยืน</strong> เครื่องหนึ่งใช้ 10–15 ปี
+  เครื่องที่ซื้อปี 2558 ยังอยู่ในห้องตรวจวันนี้ และตอนออกแบบมันก็เลือกพอร์ตที่จะไม่ล้าสมัย</li>
+  <li><strong>ไม่ต้องมี driver ไม่ต้องจับคู่</strong> เสียบแล้วคุยได้เลย
+  ไม่มีอาการ "วันนี้ Bluetooth ไม่ยอมต่อ"</li>
+  <li><strong>ไม่มีพื้นผิวให้โจมตีแบบเครือข่าย</strong> อุปกรณ์ที่ต่อสายตรงไม่โดนสแกนพอร์ต</li>
+  <li><strong>ดีบักได้ด้วยตาเปล่า</strong> เปิดโปรแกรมเทอร์มินัลก็เห็นทุกไบต์ที่วิ่ง
+  — ข้อนี้สำคัญมากและจะใช้ตลอดทั้งคู่มือ</li>
+</ul>
+
+<p>แปลว่าทักษะนี้ยังจำเป็นไปอีกนาน และคนที่ทำเป็นมีน้อยกว่าที่ควร</p>
+</section>
+
+
+<section class="ch" id="c2">
+<h3><span class="n">2</span>พื้นฐานที่ต้องรู้จริง ๆ แค่ 5 ข้อ</h3>
+
+<h4>2.1 สายมีแค่ 3 เส้นที่สำคัญ</h4>
+<p>หัวต่อ DB9 มี 9 ขา แต่การอ่านค่าจากเครื่องมือแพทย์ใช้จริงแค่ 3 ขา</p>
+
+<figure>
+<svg viewBox="0 0 640 210" role="img" aria-label="ผังขา DB9 แสดงขา 2 RX ขา 3 TX และขา 5 GND">
+  <rect x="0" y="0" width="640" height="210" fill="none"/>
+  <!-- ตัวหัวต่อ -->
+  <path d="M60 46 L300 46 L286 128 L74 128 Z" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/>
+  <!-- แถวบน 5 ขา -->
+  <g font-family="var(--font-mono)" font-size="12" text-anchor="middle">
+    <circle cx="92"  cy="70" r="9" fill="var(--surface)" stroke="var(--ink-4)" stroke-width="1.5"/>
+    <text x="92"  y="74" fill="var(--ink-3)">1</text>
+    <circle cx="140" cy="70" r="9" fill="var(--info-tint)" stroke="var(--info)" stroke-width="2.5"/>
+    <text x="140" y="74" fill="var(--info)" font-weight="700">2</text>
+    <circle cx="188" cy="70" r="9" fill="var(--brand-tint)" stroke="var(--brand)" stroke-width="2.5"/>
+    <text x="188" y="74" fill="var(--brand)" font-weight="700">3</text>
+    <circle cx="236" cy="70" r="9" fill="var(--surface)" stroke="var(--ink-4)" stroke-width="1.5"/>
+    <text x="236" y="74" fill="var(--ink-3)">4</text>
+    <circle cx="270" cy="70" r="9" fill="var(--surface-3)" stroke="var(--ink-2)" stroke-width="2.5"/>
+    <text x="270" y="74" fill="var(--ink)" font-weight="700">5</text>
+  </g>
+  <!-- แถวล่าง 4 ขา -->
+  <g font-family="var(--font-mono)" font-size="12" text-anchor="middle">
+    <circle cx="116" cy="104" r="9" fill="var(--surface)" stroke="var(--ink-4)" stroke-width="1.5"/>
+    <text x="116" y="108" fill="var(--ink-3)">6</text>
+    <circle cx="164" cy="104" r="9" fill="var(--surface)" stroke="var(--ink-4)" stroke-width="1.5"/>
+    <text x="164" y="108" fill="var(--ink-3)">7</text>
+    <circle cx="212" cy="104" r="9" fill="var(--surface)" stroke="var(--ink-4)" stroke-width="1.5"/>
+    <text x="212" y="108" fill="var(--ink-3)">8</text>
+    <circle cx="252" cy="104" r="9" fill="var(--surface)" stroke="var(--ink-4)" stroke-width="1.5"/>
+    <text x="252" y="108" fill="var(--ink-3)">9</text>
+  </g>
+  <text x="180" y="152" font-family="var(--font-sans)" font-size="13" fill="var(--ink-4)" text-anchor="middle">DB9 ตัวผู้ มองจากด้านหน้า</text>
+
+  <!-- คำอธิบาย -->
+  <g font-family="var(--font-sans)" font-size="14">
+    <circle cx="374" cy="58" r="7" fill="var(--info-tint)" stroke="var(--info)" stroke-width="2.5"/>
+    <text x="392" y="63" fill="var(--ink)" font-weight="600">ขา 2 — RX</text>
+    <text x="392" y="82" fill="var(--ink-3)" font-size="13">ข้อมูลเข้า เรารับจากเครื่อง</text>
+
+    <circle cx="374" cy="110" r="7" fill="var(--brand-tint)" stroke="var(--brand)" stroke-width="2.5"/>
+    <text x="392" y="115" fill="var(--ink)" font-weight="600">ขา 3 — TX</text>
+    <text x="392" y="134" fill="var(--ink-3)" font-size="13">ข้อมูลออก เราส่งไปหาเครื่อง</text>
+
+    <circle cx="374" cy="162" r="7" fill="var(--surface-3)" stroke="var(--ink-2)" stroke-width="2.5"/>
+    <text x="392" y="167" fill="var(--ink)" font-weight="600">ขา 5 — GND</text>
+    <text x="392" y="186" fill="var(--ink-3)" font-size="13">กราวด์ ขาดไม่ได้เด็ดขาด</text>
+  </g>
+</svg>
+<figcaption>ขาที่เหลืออีก 6 ขาเป็นสัญญาณควบคุม การอ่านค่าจากเครื่องวัดส่วนใหญ่ไม่ต้องใช้</figcaption>
+</figure>
+
+<h4>2.2 สายตรง หรือ สายไขว้ (null-modem)</h4>
+<p>นี่คือสาเหตุอันดับหนึ่งของอาการ "ต่อแล้วเงียบสนิท"</p>
+
+<figure>
+<svg viewBox="0 0 640 200" role="img" aria-label="เปรียบเทียบสายตรงกับสายไขว้ null-modem">
+  <g font-family="var(--font-sans)" font-size="13">
+    <!-- สายตรง -->
+    <text x="16" y="22" fill="var(--ink)" font-weight="600" font-size="14">สายตรง (straight)</text>
+    <rect x="16" y="36" width="96" height="54" rx="5" fill="var(--surface-2)" stroke="var(--line)"/>
+    <text x="64" y="60" fill="var(--ink-2)" text-anchor="middle" font-size="12">เครื่องวัด</text>
+    <text x="64" y="78" fill="var(--ink-4)" text-anchor="middle" font-size="11">TX(3) RX(2)</text>
+    <rect x="216" y="36" width="96" height="54" rx="5" fill="var(--surface-2)" stroke="var(--line)"/>
+    <text x="264" y="60" fill="var(--ink-2)" text-anchor="middle" font-size="12">คอมพิวเตอร์</text>
+    <text x="264" y="78" fill="var(--ink-4)" text-anchor="middle" font-size="11">TX(3) RX(2)</text>
+    <line x1="112" y1="54" x2="216" y2="54" stroke="var(--ink-4)" stroke-width="2"/>
+    <line x1="112" y1="72" x2="216" y2="72" stroke="var(--ink-4)" stroke-width="2"/>
+    <text x="164" y="48" fill="var(--ink-4)" text-anchor="middle" font-size="11">3 → 3</text>
+    <text x="164" y="110" fill="var(--danger)" text-anchor="middle" font-size="12.5" font-weight="600">TX ชนกับ TX — เงียบ</text>
+
+    <!-- สายไขว้ -->
+    <text x="16" y="150" fill="var(--ink)" font-weight="600" font-size="14">สายไขว้ (null-modem)</text>
+    <rect x="16" y="162" width="96" height="30" rx="5" fill="var(--surface-2)" stroke="var(--line)"/>
+    <text x="64" y="182" fill="var(--ink-2)" text-anchor="middle" font-size="12">เครื่องวัด</text>
+    <rect x="216" y="162" width="96" height="30" rx="5" fill="var(--surface-2)" stroke="var(--line)"/>
+    <text x="264" y="182" fill="var(--ink-2)" text-anchor="middle" font-size="12">คอมพิวเตอร์</text>
+    <path d="M112 170 L216 186" stroke="var(--brand)" stroke-width="2.5"/>
+    <path d="M112 186 L216 170" stroke="var(--brand)" stroke-width="2.5"/>
+    <text x="164" y="156" fill="var(--brand)" text-anchor="middle" font-size="11" font-weight="600">2 ⇄ 3</text>
+
+    <!-- สรุป -->
+    <rect x="356" y="36" width="268" height="156" rx="8" fill="var(--brand-tint)" stroke="var(--brand)" stroke-opacity=".35"/>
+    <text x="376" y="64" fill="var(--brand-dark)" font-weight="700" font-size="14">กฎที่ช่วยชีวิต</text>
+    <text x="376" y="90" fill="var(--ink-2)" font-size="13">เครื่องมือแพทย์ต่อคอมพิวเตอร์</text>
+    <text x="376" y="110" fill="var(--ink-2)" font-size="13">ส่วนใหญ่ต้องใช้สายไขว้</text>
+    <text x="376" y="142" fill="var(--ink)" font-size="13" font-weight="600">ถ้าเงียบสนิท</text>
+    <text x="376" y="162" fill="var(--ink-2)" font-size="13">ให้ลองสลับเป็นอีกแบบก่อนเสมอ</text>
+    <text x="376" y="180" fill="var(--ink-3)" font-size="12">ก่อนจะไปสงสัยอย่างอื่น</text>
+  </g>
+</svg>
+</figure>
+
+<p>ถ้าไม่อยากซื้อสายใหม่ ซื้อ <strong>null-modem adapter</strong> หัวเล็ก ๆ มาเสียบคั่นได้
+ราคาไม่กี่สิบบาท และควรมีติดกระเป๋าไว้เลย</p>
+
+<h4>2.3 แรงดันไม่เท่า TTL</h4>
+<div class="box stop">
+  <span class="bt">ห้ามต่อ RS-232 เข้าขา Arduino หรือ Raspberry Pi ตรง ๆ</span>
+  <p>RS-232 ใช้แรงดันได้ถึง ±12 โวลต์ ส่วนขา GPIO ของบอร์ดพวกนี้รับแค่ 3.3–5 โวลต์
+  ต่อตรงคือพัง ต้องผ่านตัวแปลงระดับแรงดัน (เช่นโมดูล MAX3232) หรือใช้ตัวแปลง USB-to-Serial
+  ซึ่งจัดการให้อยู่แล้ว</p>
+</div>
+
+<h4>2.4 พารามิเตอร์ 4 ตัวที่ต้องตรงกันทั้งสองฝั่ง</h4>
+<p>เขียนย่อกันว่า <code>9600-8-N-1</code> อ่านว่า</p>
+<div class="tw">
+<table>
+  <thead><tr><th>ส่วน</th><th>คือ</th><th>ค่าที่เจอบ่อย</th></tr></thead>
+  <tbody>
+    <tr><td><code>9600</code></td><td>baud — ความเร็ว (บิตต่อวินาที)</td><td class="num">9600, 19200, 38400, 115200</td></tr>
+    <tr><td><code>8</code></td><td>จำนวนบิตข้อมูลต่อหนึ่งไบต์</td><td class="num">8 (เกือบทั้งหมด)</td></tr>
+    <tr><td><code>N</code></td><td>parity — บิตตรวจสอบ</td><td>N = ไม่มี (เกือบทั้งหมด)</td></tr>
+    <tr><td><code>1</code></td><td>stop bits</td><td class="num">1 (เกือบทั้งหมด)</td></tr>
+  </tbody>
+</table>
+</div>
+<p>ในทางปฏิบัติ <strong>3 ตัวหลังแทบไม่เคยเปลี่ยน</strong> ตัวที่ต้องหาจริง ๆ คือ baud ตัวเดียว
+ซึ่งเป็นเหตุผลที่บทที่ 6 ขึ้นต้นด้วยการไล่ baud</p>
+
+<h4>2.5 ไบต์ควบคุมที่ต้องจำ 4 ตัว</h4>
+<div class="tw">
+<table>
+  <thead><tr><th>ไบต์</th><th>ชื่อ</th><th>หมายถึง</th></tr></thead>
+  <tbody>
+    <tr><td><code>0x02</code></td><td>STX</td><td>Start of Text — เริ่มเฟรม</td></tr>
+    <tr><td><code>0x03</code></td><td>ETX</td><td>End of Text — จบเฟรม</td></tr>
+    <tr><td><code>0x0D 0x0A</code></td><td>CR LF</td><td>จบบรรทัด (เหมือนกด Enter)</td></tr>
+    <tr><td><code>0x06</code></td><td>ACK</td><td>รับทราบ — ใช้ตอบกลับเครื่อง</td></tr>
+  </tbody>
+</table>
+</div>
+<p><strong>ไบต์พวกนี้มองไม่เห็นถ้าดูแบบข้อความ</strong> ต้องดูแบบ HEX เท่านั้น
+— เป็นเหตุผลที่บทที่ 5 ย้ำเรื่องติ๊กช่อง HEX</p>
+</section>
+
+
+<section class="ch" id="c3">
+<h3><span class="n">3</span>เลือกตัวแปลง USB-to-Serial</h3>
+
+<p>คอมพิวเตอร์สมัยนี้ไม่มีพอร์ต DB9 แล้ว ต้องใช้ตัวแปลง USB ซึ่งข้างในมีชิปอยู่ 4 ตระกูลหลัก
+<span class="chip ok">✓ ยืนยันแล้ว</span> รายการนี้คือชิปที่แอปคีออสก์ Smart OPD ประกาศรองรับจริง
+ใน <code>android/app/src/main/res/xml/device_filter.xml</code></p>
+
+<div class="tw">
+<table>
+  <thead><tr><th>ชิป</th><th>Vendor ID</th><th>ความเห็น</th></tr></thead>
+  <tbody>
+    <tr><td><strong>FTDI</strong></td><td><code>0x0403</code></td>
+        <td>เสถียรที่สุด ไดรเวอร์ดีที่สุด แพงที่สุด — <strong>ถ้าเลือกได้ เลือกตัวนี้</strong>
+        ระวังของปลอมซึ่งมีเยอะมาก</td></tr>
+    <tr><td><strong>CP210x</strong> (Silicon Labs)</td><td><code>0x10C4</code></td>
+        <td>เสถียรดี รองมาจาก FTDI หาซื้อง่าย</td></tr>
+    <tr><td><strong>CH340 / CH341</strong></td><td><code>0x1A86</code></td>
+        <td>ถูกที่สุด เจอบ่อยที่สุดในของจีน ใช้ได้ แต่ Windows บางเครื่องต้องลงไดรเวอร์เอง</td></tr>
+    <tr><td><strong>PL2303</strong> (Prolific)</td><td><code>0x067B</code></td>
+        <td>ของปลอมเยอะจน Prolific ออกไดรเวอร์ที่บล็อกของปลอม อาการ: ขึ้นเครื่องหมายตกใจ
+        ใน Device Manager ทั้งที่เพิ่งซื้อมา</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="box warn">
+  <span class="bt">⚠ ยังไม่ยืนยัน</span>
+  <p>ยังไม่มีบันทึกว่ารุ่น/ยี่ห้อตัวแปลงตัวไหน <em>ทดสอบกับ Terumo BR-500 จริงแล้วผ่าน</em>
+  ตารางข้างบนมาจากรายการที่แอปประกาศรองรับ ไม่ใช่ผลทดสอบรายรุ่น
+  ถ้าคุณทดสอบแล้วได้ผล ช่วยแชร์กลับมาด้วย</p>
+  <p style="margin-top:8px">มี vendor ID อีกตัวในไฟล์คือ <code>0x058F</code> ที่ไม่มีคอมเมนต์กำกับว่าเป็นชิปอะไร</p>
+</div>
+
+<p><strong>วิธีเช็คว่าตัวที่มีอยู่เป็นชิปอะไร:</strong> เปิด Device Manager →
+คลิกขวาที่พอร์ต → Properties → แท็บ Details → เลือก <em>Hardware Ids</em>
+จะเห็นข้อความแบบ <code>USB\VID_0403&amp;PID_6001</code> — เลข <code>VID_</code> คือ Vendor ID</p>
+</section>
+
+
+<section class="ch" id="c4">
+<h3><span class="n">4</span>หา COM port ให้เจอ</h3>
+
+<ol class="steps">
+  <li><b>เปิด Device Manager</b> กด <code>Win + X</code> แล้วเลือก Device Manager
+      หรือกด <code>Win + R</code> พิมพ์ <code>devmgmt.msc</code></li>
+  <li><b>ดูหัวข้อ Ports (COM &amp; LPT)</b> ถ้าไม่มีหัวข้อนี้เลย แปลว่าไม่มีพอร์ตอนุกรมในระบบ
+      — ตัวแปลงยังไม่ได้เสียบ หรือไดรเวอร์ยังไม่ลง</li>
+  <li><b>หาว่าตัวไหนคือของเรา</b> วิธีที่ชัวร์ที่สุดคือ <strong>ถอดตัวแปลงออกแล้วเสียบกลับ</strong>
+      ตัวที่หายไปแล้วโผล่กลับมาคือตัวนั้น</li>
+  <li><b>ถ้าเลข COM สูงเกินไป</b> บางโปรแกรมเก่ารองรับถึงแค่ COM9
+      เปลี่ยนได้ที่ Properties → Port Settings → Advanced → COM Port Number</li>
+</ol>
+
+<div class="box warn">
+  <span class="bt">"Access is denied" ตอนเปิดพอร์ต</span>
+  <p>พอร์ตอนุกรมเปิดได้ทีละโปรแกรมเท่านั้น ข้อความนี้แปลว่ามีอย่างอื่นจับพอร์ตนั้นอยู่
+  — มักเป็น Hercules ที่ลืมกด Close, แท็บ Chrome ที่เชื่อม Web Serial ค้างไว้
+  หรือโปรแกรมอ่านที่เปิดทิ้งไว้อีกหน้าต่าง ปิดให้หมดแล้วลองใหม่</p>
+</div>
+</section>
+
+
+<section class="ch" id="c5">
+<h3><span class="n">5</span>Hercules — เครื่องมือที่ต้องมีก่อนเขียนโค้ด</h3>
+
+<div class="box key">
+  <span class="bt">หลักการสำคัญที่สุดของคู่มือนี้</span>
+  <p>ถ้า Hercules ไม่เห็นข้อมูล <strong>ปัญหาไม่ได้อยู่ที่โค้ดคุณ</strong>
+  อย่าเสียเวลาไล่ดีบักแอปตัวเอง ให้กลับไปดูสาย พอร์ต และตัวเครื่องก่อน</p>
+</div>
+
+<p>Hercules SETUP utility จาก HW-group เป็นโปรแกรมฟรี ไฟล์ <code>.exe</code> ไฟล์เดียว
+ไม่ต้องติดตั้ง มันคือเทอร์มินัลดิบที่แสดงทุกไบต์ที่วิ่งผ่านสาย ไม่ตีความอะไรให้เลย
+— ซึ่งเป็นข้อดี เพราะเราอยากเห็นความจริง</p>
+
+<h4>5.1 ตั้งค่า 6 ช่องในแท็บ Serial</h4>
+<div class="tw">
+<table>
+  <thead><tr><th>ช่อง</th><th>ตั้งเป็น</th><th>หมายเหตุ</th></tr></thead>
+  <tbody>
+    <tr><td>Name</td><td>COM ที่ได้จากบทที่ 4</td><td>เลือกจากรายการ</td></tr>
+    <tr><td>Baud</td><td><code>9600</code></td><td>ค่าเริ่มต้นที่ควรลองก่อน ดูบทที่ 6</td></tr>
+    <tr><td>Data size</td><td><code>8</code></td><td>แทบไม่เคยเปลี่ยน</td></tr>
+    <tr><td>Parity</td><td><code>none</code></td><td>แทบไม่เคยเปลี่ยน</td></tr>
+    <tr><td>Handshake</td><td><code>OFF</code></td><td>สำคัญ — ถ้าเปิดไว้อาจไม่ได้ข้อมูล</td></tr>
+    <tr><td>Mode</td><td><code>Free</code></td><td></td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="box key">
+  <span class="bt">ติ๊กช่อง HEX ด้วย</span>
+  <p>ถ้าไม่ติ๊ก จะเห็นแค่ตัวอักษรที่อ่านออก <strong>ไบต์ STX กับ ETX จะหายไปเฉย ๆ</strong>
+  ทั้งที่เป็นตัวบอกขอบเฟรมที่เราต้องการหามากที่สุด</p>
+</div>
+
+<p>แล้วกด <strong>Open</strong> ถ้าปุ่มเปลี่ยนเป็น Close แปลว่าเปิดพอร์ตสำเร็จ
+(ยังไม่ได้แปลว่ามีข้อมูลนะ แค่เปิดพอร์ตได้)</p>
+
+<h4>5.2 ส่งข้อมูลกลับไปหาเครื่อง</h4>
+<p>ช่อง Send ด้านล่างใช้ส่งไบต์ออกไป พิมพ์เลขฐานสิบหกด้วยเครื่องหมาย <code>$</code> นำหน้า</p>
+<div class="tw">
+<table>
+  <thead><tr><th>พิมพ์</th><th>ส่งออกไปคือ</th><th>ใช้ทำอะไร</th></tr></thead>
+  <tbody>
+    <tr><td><code>$06</code></td><td>ACK</td><td>บอกเครื่องว่ารับข้อมูลแล้ว</td></tr>
+    <tr><td><code>$15</code></td><td>NAK</td><td>บอกว่ารับไม่ได้ ขอใหม่</td></tr>
+    <tr><td><code>$05</code></td><td>ENQ</td><td>ถามเครื่องว่าอยู่ไหม</td></tr>
+    <tr><td><code>$02$44$31$2C$03</code></td><td>เฟรม <code>D1,</code></td><td>ส่งคำสั่งทั้งเฟรม</td></tr>
+  </tbody>
+</table>
+</div>
+<p>ความสามารถนี้มีค่ามาก เพราะ <strong>ไล่ทดสอบคำสั่งได้โดยไม่ต้องแก้โค้ดสักบรรทัด</strong>
+จะใช้จริงในบทที่ 14</p>
+
+<div class="box info">
+  <span class="bt">ตรวจสอบก่อนใช้จริง</span>
+  <p>ไวยากรณ์ <code>$</code> ใช้กับ Hercules เวอร์ชัน 3.2.x ถ้าเวอร์ชันที่คุณใช้ต่างออกไป
+  ให้ลองส่ง <code>$06</code> แล้วดูช่องรับของอีกฝั่ง ว่าได้ไบต์ <code>06</code> จริงหรือได้ตัวอักษร
+  <code>$</code> กับ <code>0</code> กับ <code>6</code> — ทดสอบกับคู่พอร์ตจำลองก่อนได้ (บทที่ 13)</p>
+</div>
+</section>
+
+
+<section class="ch" id="c6">
+<h3><span class="n">6</span>อุปกรณ์ไม่มีเอกสาร: ถอดรหัสโปรโตคอล 6 ขั้น</h3>
+
+<p>สถานการณ์จริงที่เจอบ่อยที่สุด: มีเครื่องอยู่ตรงหน้า ไม่มีคู่มือ ผู้ผลิตไม่ตอบอีเมล
+ค้นอินเทอร์เน็ตก็ไม่เจอ <strong>ยังทำได้</strong> และนี่คือขั้นตอน</p>
+
+<ol class="steps">
+  <li><b>ไล่ baud จนไบต์อ่านออก</b>
+    เปิด Hercules โหมด HEX แล้วลองเรียงนี้: <code>9600</code> → <code>19200</code> →
+    <code>38400</code> → <code>115200</code> สั่งเครื่องวัด 1 ครั้งในแต่ละค่า
+    <br><em>สัญญาณว่าถูกแล้ว:</em> ไบต์ออกมาเป็นรูปแบบเดิมซ้ำ ๆ ทุกครั้ง มีช่วงที่เป็นตัวเลข
+    ASCII (<code>30</code>–<code>39</code>) <em>สัญญาณว่าผิด:</em> ไบต์มั่วไม่ซ้ำกันเลย
+    ยาวสั้นไม่เท่ากันทุกครั้ง</li>
+
+  <li><b>ดูว่าเครื่องส่งเองหรือต้องขอ</b>
+    วัด 1 ครั้งโดยไม่ส่งอะไรออกไปเลย ถ้ามีข้อมูลไหลออกมา แสดงว่าเครื่องส่งเอง —
+    งานง่ายลงครึ่งหนึ่ง เพราะแค่ดักฟังก็พอ ถ้าเงียบ ต้องหาคำสั่งขอข้อมูล
+    ลอง <code>$05</code> (ENQ) และ <code>$06</code> (ACK) ก่อน</li>
+
+  <li><b>หาขอบเฟรม</b>
+    ดูว่าไบต์ชุดเดิมขึ้นต้นและลงท้ายด้วยอะไรทุกครั้ง มองหา <code>02</code>…<code>03</code>
+    (STX/ETX) หรือ <code>0D 0A</code> (CR/LF) ถ้าเจอ แปลว่ารู้แล้วว่าเฟรมเริ่มและจบตรงไหน
+    ซึ่งเป็นครึ่งหนึ่งของงาน</li>
+
+  <li><b>วัดค่าที่รู้คำตอบอยู่แล้ว</b>
+    วัดความดัน 3 ครั้ง <strong>จดค่าที่ขึ้นบนหน้าจอเครื่องไว้ทุกครั้ง</strong>
+    แล้วหาเลขนั้นในไบต์ ถ้าเครื่องแสดง 138 ให้มองหา <code>31 33 38</code>
+    (คือ ASCII ของ '1' '3' '8') นี่คือเทคนิคหลักในการหาว่าฟิลด์ไหนอยู่ตรงไหน</li>
+
+  <li><b>ยืนยันด้วยสูตร MAP</b>
+    <div class="box key" style="margin:10px 0 0">
+      <span class="bt">เทคนิคที่ทรงพลังที่สุดในบทนี้</span>
+      <p>ค่าความดันเฉลี่ย (MAP) มีความสัมพันธ์ทางสรีรวิทยากับ SYS และ DIA เสมอ:</p>
+      <pre class="code" style="margin:8px 0">MAP ≈ (SYS + 2 × DIA) / 3</pre>
+      <p>ถ้าเดาว่าฟิลด์ไหนเป็น SYS ฟิลด์ไหนเป็น DIA แล้วมีอีกฟิลด์ที่ค่าตรงกับสูตรนี้พอดี
+      <strong>แปลว่าเดาถูกทั้งชุด</strong> ไม่ใช่แค่ฟิลด์เดียว เพราะความบังเอิญที่เลข 3 ตัว
+      จะเข้าสูตรพอดีนั้นต่ำมาก</p>
+      <p style="margin-top:8px">ตัวอย่างจริงจากเฟรม Terumo: <code>131, 090, 069, 092</code><br>
+      (131 + 2 × 69) ÷ 3 = 89.7 ≈ 90 ✓ — ยืนยันว่าลำดับคือ SYS, MAP, DIA, PULSE</p>
+    </div>
+  </li>
+
+  <li><b>หา checksum</b>
+    ดูไบต์สุดท้ายของเฟรม ถ้ามันเปลี่ยนทุกครั้งที่เนื้อหาเปลี่ยน แต่เหมือนเดิมเมื่อเนื้อหาเหมือนเดิม
+    นั่นคือ checksum ลองสูตรที่พบบ่อยเรียงนี้: <strong>ผลรวมทุกไบต์ <code>&amp; 0xFF</code></strong>
+    (เจอบ่อยที่สุด) → XOR ทุกไบต์ → CRC-16 <br>
+    ลองทั้งแบบรวม STX/ETX และไม่รวม เพราะแต่ละยี่ห้อนับไม่เหมือนกัน</li>
+</ol>
+
+<p>จบ 6 ขั้นนี้แล้วเอาผลไปกรอกลงเป็น Device Profile ในบทที่ 8 ได้เลย</p>
+</section>
+
+
+<section class="ch" id="c7">
+<h3><span class="n">7</span>รูปแบบเฟรม 4 ตระกูลที่เจอในเครื่องมือแพทย์</h3>
+
+<div class="tw">
+<table>
+  <thead><tr><th>ตระกูล</th><th>หน้าตา</th><th>ตัวอย่างเครื่อง</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>STX/ETX + checksum</strong><br><span style="color:var(--ink-4);font-size:13px">ไม่มี CR/LF</span></td>
+      <td><code>02</code> …ASCII… <code>03</code> <code>BCC</code></td>
+      <td>Terumo BR-500</td>
+    </tr>
+    <tr>
+      <td><strong>บรรทัดจบด้วย CR/LF</strong></td>
+      <td><code>&lt;STX&gt;</code>DATA<code>&lt;ETX&gt;</code><code>\r\n</code></td>
+      <td>Omron, AND, เครื่องชั่ง BAM</td>
+    </tr>
+    <tr>
+      <td><strong>ความกว้างคงที่</strong></td>
+      <td>ไม่มีตัวคั่น ตัดตามตำแหน่งตัวอักษร</td>
+      <td>เครื่องรุ่นเก่า</td>
+    </tr>
+    <tr>
+      <td><strong>ASTM / HL7</strong></td>
+      <td>มีโครงสร้างมาตรฐาน หลายบรรทัดต่อผลหนึ่งชุด</td>
+      <td>เครื่องวิเคราะห์ในห้องแล็บ</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="box warn">
+  <span class="bt">กับดักที่ทำให้คนติดจริง ๆ</span>
+  <p>ถ้าเขียนตัวตัดเฟรมให้รอเฉพาะ <code>\r\n</code> เฟรมของตระกูลแรก
+  (ที่จบด้วย ETX + checksum และ<strong>ไม่มี CR/LF เลย</strong>)
+  จะค้างอยู่ในบัฟเฟอร์ตลอดกาล ข้อมูลมาถึงแล้วแต่โปรแกรมไม่เห็น
+  หน้าจอค้างอยู่ที่ "รอข้อมูล" ทั้งที่สายทำงานปกติ</p>
+  <p style="margin-top:8px">บั๊กนี้เคยเกิดจริงในแอปคีออสก์ Smart OPD จนต้องแก้ให้
+  <strong>ตัวตัดเฟรมรองรับทั้ง CR/LF และ ETX พร้อมกัน</strong> — ตัวไหนมาถึงก่อนก็ตัดตรงนั้น</p>
+</div>
+</section>
+
+
+<section class="ch" id="c8">
+<h3><span class="n">8</span>Device Profile — เขียนครั้งเดียว ใช้ได้ทุกเครื่อง</h3>
+
+<p>ถ้าเขียนโปรแกรมใหม่ทุกครั้งที่เจอเครื่องใหม่ จะมีโค้ดที่หน้าตาเหมือนกัน 90% เต็มไปหมด
+วิธีที่ดีกว่าคือ <strong>อธิบายเครื่องเป็นข้อมูล แล้วใช้โค้ดชุดเดียวอ่านทุกเครื่อง</strong></p>
+
+<pre class="code">{
+  "name": "Terumo BR-500",
+  "verified": true,
+
+  "port":    { "baud": 9600, "dataBits": 8, "parity": "none", "stopBits": 1 },
+
+  "framing": { "stx": "0x02", "etx": "0x03",
+               "checksum": "sum8", "checksumRange": "stx-to-etx",
+               "lineTerminator": null },
+
+  "body":    { "delimiter": ",", "recordId": "R1", "minFields": 8 },
+
+  "fields":  { "deviceId": 1, "date": 2, "time": 3,
+               "sys": 4, "map": 5, "dia": 6, "pulse": 7 }
+}</pre>
+
+<p>สิ่งที่ได้จากการทำแบบนี้</p>
+<ul>
+  <li><strong>ตัวอ่าน</strong> ใช้ profile บอกว่าจะตัดเฟรมอย่างไรและหยิบฟิลด์ไหน</li>
+  <li><strong>ตัวจำลอง</strong> ใช้ profile ตัวเดียวกัน<em>ย้อนกลับ</em> — สร้างเฟรมปลอมออกมาได้ทันที
+  โดยไม่ต้องเขียนโปรแกรมจำลองตัวใหม่</li>
+  <li><strong>เพิ่มเครื่องใหม่ = เพิ่มไฟล์ JSON</strong> ไม่ต้องแตะโค้ด ไม่ต้อง build ใหม่</li>
+  <li>ฟิลด์ <code>verified</code> ทำให้โปรแกรมรู้ตัวว่าข้อมูลนี้ยังไม่ยืนยัน
+  แล้วขึ้นป้ายเตือนบนหน้าจอได้เอง</li>
+</ul>
+
+<p>โครงนี้มีโค้ดจริงให้ดูใน <code>device_profile.py</code>, <code>device_simulator.py</code>
+และ <code>device_reader.py</code> พร้อมชุดทดสอบ <code>test_profiles.py</code></p>
+</section>
+
+
+<section class="ch" id="c9">
+<h3><span class="n">9</span>จับคู่กับเครื่องที่คุณมี</h3>
+
+<p>ตารางนี้เป็น<strong>แนวทางสำหรับตั้งต้น ไม่ใช่ผลทดสอบ</strong> ใช้เพื่อรู้ว่าควรคาดหวังอะไร
+แล้วไปพิสูจน์ด้วยบทที่ 6</p>
+
+<div class="tw">
+<table>
+  <thead><tr><th>ประเภทเครื่อง</th><th>มักเป็นตระกูล</th><th>จุดสังเกต</th></tr></thead>
+  <tbody>
+    <tr><td>เครื่องวัดความดันอัตโนมัติ</td><td>STX/ETX หรือ CR/LF</td>
+        <td>ส่งครั้งเดียวจบเมื่อวัดเสร็จ มักมี MAP มาด้วย — ใช้สูตรยืนยันได้</td></tr>
+    <tr><td>เครื่องชั่งน้ำหนัก / วัดส่วนสูง</td><td>บรรทัด CR/LF</td>
+        <td>ส่งต่อเนื่องตลอดเวลาขณะที่น้ำหนักยังไม่นิ่ง ต้องรอค่านิ่งก่อนค่อยเก็บ</td></tr>
+    <tr><td>เครื่องวัดออกซิเจนปลายนิ้ว</td><td>ไบนารีความกว้างคงที่</td>
+        <td>ส่งถี่มาก หลายสิบครั้งต่อวินาที ไม่ใช่ ASCII อ่านด้วยตาไม่ออก</td></tr>
+    <tr><td>เครื่องตรวจน้ำตาลปลายนิ้ว</td><td>บรรทัด CR/LF</td>
+        <td>ส่วนใหญ่ต้องส่งคำสั่งขอ ไม่ส่งเอง และมักส่งประวัติทั้งชุดออกมาทีเดียว</td></tr>
+    <tr><td>เครื่องวิเคราะห์ห้องแล็บ</td><td>ASTM E1381/E1394</td>
+        <td>มีมาตรฐาน ใช้ไลบรารีสำเร็จรูปดีกว่าเขียนเอง</td></tr>
+  </tbody>
+</table>
+</div>
+</section>
+
+
+<section class="ch" id="c10">
+<h3><span class="n">10</span>เครื่องรุ่นนี้ส่งข้อมูลได้ไหม</h3>
+
+<p>คำถามที่ควรตอบให้ได้<em>ก่อน</em>ลงทุนเวลา เพราะบางเครื่องส่งไม่ได้จริง ๆ</p>
+
+<ol class="steps">
+  <li><b>ดูด้านหลังเครื่อง</b> มีพอร์ต DB9, mini-DIN, หรือช่องแบบ RJ ไหม
+      ถ้าไม่มีช่องอะไรเลยนอกจากสายไฟ คำตอบคือไม่ได้</li>
+  <li><b>เปิดคู่มือหาคำเหล่านี้</b> <code>RS-232C</code>, <code>Serial interface</code>,
+      <code>Data output</code>, <code>External output</code>, <code>Printer port</code>
+      <div class="box key" style="margin:10px 0 0">
+        <span class="bt">เคล็ดลับที่คนมองข้าม</span>
+        <p>รุ่นที่คู่มือเขียนว่ามีแค่ <strong>"ช่องต่อเครื่องพิมพ์"</strong> ส่วนใหญ่
+        <strong>ดักอ่านข้อมูลได้</strong> เพราะมันคือพอร์ตอนุกรมที่ส่งข้อความใบเสร็จออกมา
+        อย่าเพิ่งตัดทิ้งเพราะไม่เห็นคำว่า RS-232</p>
+      </div>
+  </li>
+  <li><b>เช็คเมนูตั้งค่าของเครื่อง</b> บางรุ่นต้องเปิดโหมดส่งข้อมูลก่อน
+      ไม่งั้นพอร์ตเงียบสนิททั้งที่สายถูกทุกอย่าง มักอยู่ในเมนู Setting หรือ Service</li>
+  <li><b>พิสูจน์ด้วย Hercules</b> ต่อสาย เปิดโหมด HEX แล้วสั่งวัด 1 ครั้ง</li>
+</ol>
+
+<div class="tw">
+<table>
+  <thead><tr><th>เห็นอะไรใน Hercules</th><th>แปลว่า</th><th>ทำต่อ</th></tr></thead>
+  <tbody>
+    <tr><td>มีไบต์ และมี <code>02</code>…<code>03</code> หรือ <code>0D 0A</code></td>
+        <td><span class="chip ok">✓ รองรับ</span></td><td>ไปถอดรหัสเฟรม บทที่ 6</td></tr>
+    <tr><td>มีไบต์ แต่มั่ว ไม่มีขอบเฟรม</td>
+        <td>รองรับ แต่ baud ผิด</td><td>ไล่ baud ตามบทที่ 6 ขั้น 1</td></tr>
+    <tr><td>ไม่มีไบต์เลย</td>
+        <td>ยังสรุปไม่ได้</td><td>สลับสาย null-modem → เช็คเมนูเครื่อง → เช็คว่าเปิดถูก COM</td></tr>
+    <tr><td>เปิดพอร์ตไม่ได้</td>
+        <td>มีโปรแกรมอื่นจับอยู่</td><td>ปิดโปรแกรมอื่นให้หมด (ดูบทที่ 4)</td></tr>
+    <tr><td>ไม่มีพอร์ตที่ตัวเครื่อง</td>
+        <td><span class="chip un">✗ ไม่รองรับ</span></td><td>ต้องใช้วิธีพิมพ์มือ ดูบทที่ 20</td></tr>
+  </tbody>
+</table>
+</div>
+</section>
+
+
+<!-- ==================== ภาค 2 ==================== -->
+<div class="part-head">
+  <div class="part-num">ภาค 2</div>
+  <h2>กรณีศึกษา 2 เครื่อง — รู้โปรโตคอลแล้ว กับ ยังไม่รู้</h2>
+  <p>เครื่องแรกถอดรหัสเสร็จแล้ว เครื่องที่สองยังไม่เสร็จ — ตั้งใจให้เห็นทั้งสองสถานะ
+  เพราะของจริงส่วนใหญ่เริ่มจากสถานะที่สอง</p>
+</div>
+
+<section class="ch" id="c11">
+<h3><span class="n">11</span>Terumo BR-500: ไล่หา baud <span class="chip ok">✓ ยืนยันแล้ว</span></h3>
+
+<p>ต่อสายแล้วเปิด Hercules โหมด HEX สั่งวัด 1 ครั้ง สิ่งที่เห็นคือชุดไบต์ที่ขึ้นต้นด้วย
+<code>02</code> และมีช่วงตัวเลข ASCII ชัดเจน — รู้ทันทีว่าเป็นตระกูล STX/ETX จากบทที่ 7</p>
+
+<div class="box warn">
+  <span class="bt">⚠ baud ยังไม่ได้ข้อสรุป — อ่านตรงนี้ก่อนตั้งค่า</span>
+  <p>มีค่าอยู่สองค่าที่ขัดกันเองระหว่างโค้ดสองชุดในโปรเจกต์เดียวกัน</p>
+  <ul style="margin:8px 0 0">
+    <li><strong>19200</strong> — ใช้ในโค้ดทดลองทั้ง 5 ตัวของชุด <code>test_terumo</code></li>
+    <li><strong>9600</strong> — ใช้ในแอปคีออสก์ที่ติดตั้งหน้างานจริง
+    และในโค้ดนั้น <code>// return 19200;</code> ถูกคอมเมนต์ทิ้งไว้</li>
+  </ul>
+  <p style="margin-top:8px">การที่โค้ดหน้างานถูกเปลี่ยนมาเป็น 9600 แล้วคอมเมนต์ 19200 ทิ้ง
+  <em>น่าจะ</em>แปลว่า 9600 คือค่าที่ใช้ได้จริง แต่ยังไม่มีบันทึกการทดสอบยืนยัน
+  <strong>คำแนะนำ: ลอง 9600 ก่อน ถ้าไม่ได้ค่อยลอง 19200</strong></p>
+</div>
+</section>
+
+
+<section class="ch" id="c12">
+<h3><span class="n">12</span>ถอดรหัสเฟรม R1</h3>
+
+<p>เฟรมจริงที่ดักได้ ไล่สีให้เห็นว่าส่วนไหนคืออะไร</p>
+
+<div class="hex"><span class="f">02</span> 52 31 2C 30 30 30 30 30 30 30 30 30 2C 32 36 30 34 32 39 2C
+31 30 33 38 30 30 2C <span class="v">31 31 39</span> 2C <span class="v">30 39 30</span> 2C <span class="v">30 37 36</span> 2C <span class="v">30 38 33</span> 2C
+30 30 30 30 2C 30 30 30 30 2C 30 30 30 30 30 2C 30 30 30 <span class="f">03</span> <span class="c">BCC</span></div>
+<div class="legend">
+  <span><i class="sw" style="background:var(--hex-frame)"></i> STX / ETX — ขอบเฟรม</span>
+  <span><i class="sw" style="background:var(--hex-value)"></i> ค่าที่วัดได้</span>
+  <span><i class="sw" style="background:var(--hex-check)"></i> checksum</span>
+</div>
+
+<p>แปลงเป็นข้อความอ่านได้</p>
+<pre class="code">R1,000000000,260429,103800,119,090,076,083,0000,0000,00000,000
+ 0     1        2      3     4   5   6   7</pre>
+
+<div class="tw">
+<table>
+  <thead><tr><th>index</th><th>คือ</th><th>ตัวอย่าง</th></tr></thead>
+  <tbody>
+    <tr><td class="num">0</td><td>ชนิดเรคคอร์ด</td><td><code>R1</code> = ผลการวัด</td></tr>
+    <tr><td class="num">1</td><td>รหัสเครื่อง 9 หลัก</td><td><code>000000000</code></td></tr>
+    <tr><td class="num">2</td><td>วันที่ YYMMDD</td><td><code>260429</code></td></tr>
+    <tr><td class="num">3</td><td>เวลา HHMMSS</td><td><code>103800</code></td></tr>
+    <tr><td class="num">4</td><td><strong>SYS</strong> ความดันตัวบน</td><td class="num">119</td></tr>
+    <tr><td class="num">5</td><td><strong>MAP</strong> ความดันเฉลี่ย</td><td class="num">090</td></tr>
+    <tr><td class="num">6</td><td><strong>DIA</strong> ความดันตัวล่าง</td><td class="num">076</td></tr>
+    <tr><td class="num">7</td><td><strong>PULSE</strong> ชีพจร</td><td class="num">083</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="box key">
+  <span class="bt">ยืนยันว่าอ่านลำดับถูก</span>
+  <p>(119 + 2 × 76) ÷ 3 = 90.3 ≈ <strong>90</strong> ซึ่งตรงกับ index 5 พอดี
+  — พิสูจน์ว่า index 4/5/6 คือ SYS/MAP/DIA ไม่ใช่ SYS/DIA/MAP</p>
+  <p style="margin-top:8px">ข้อผิดพลาดที่เจอบ่อยคือสลับ index 5 กับ 6 ทำให้ได้ค่า DIA
+  สูงกว่าความจริงราว 15 mmHg ซึ่งดูสมเหตุสมผลพอที่จะไม่มีใครทักท้วง — อันตรายตรงนี้</p>
+</div>
+
+<h4>12.1 คำนวณ BCC</h4>
+<p>บวกทุกไบต์ <strong>รวม STX และ ETX</strong> แล้วเอาเฉพาะ 8 บิตล่าง</p>
+<pre class="code">BCC = (ผลรวมของทุกไบต์ตั้งแต่ STX ถึง ETX) &amp; 0xFF</pre>
+
+<p>ตัวอย่างเล็กที่ตรวจด้วยมือได้ — เฟรมคำสั่ง <code>D1,</code></p>
+<div class="hex"><span class="f">02</span> 44 31 2C <span class="f">03</span> → <span class="c">A6</span></div>
+<pre class="code">0x02 + 0x44 + 0x31 + 0x2C + 0x03
+  2  +  68  +  49  +  44  +   3   = 166 = 0xA6  ✓</pre>
+<p>ถ้าคำนวณตามนี้แล้วไม่ได้ <code>A6</code> แปลว่าเข้าใจสูตรผิด ให้กลับมาตรวจตรงนี้ก่อน</p>
+
+<div class="box key">
+  <span class="bt">จุดแตกหักของโปรเจกต์นี้</span>
+  <p>ค่าความดัน<strong>มาพร้อมเฟรมที่เครื่องส่งออกมาเองอยู่แล้ว</strong>
+  ไม่ต้องทำ handshake ให้สำเร็จก็อ่านค่าได้ แค่ดักฟังแล้วแยกเฟรมเป็นพอ
+  — ความเข้าใจข้อนี้ทำให้งานที่ค้างอยู่หลายเดือนจบลงได้</p>
+</div>
+</section>
+
+
+<section class="ch" id="c13">
+<h3><span class="n">13</span>ซ้อมโดยไม่มีเครื่องจริง</h3>
+
+<p>ไม่มี BR-500 ก็ทำตามคู่มือนี้ได้ทั้งหมด โดยจำลองเครื่องขึ้นมาเองแล้วต่อพอร์ตจำลองสองตัวเข้าหากัน</p>
+
+<ol class="steps">
+  <li><b>สร้างคู่พอร์ตจำลอง</b> ลง com0com (ฟรี) หรือ HHD Virtual Serial Port Tools
+      แล้วสร้างคู่ เช่น COM3 ⇄ COM4 สิ่งที่เขียนเข้าฝั่งหนึ่งจะโผล่อีกฝั่งทันที</li>
+  <li><b>เปิดตัวจำลองที่ฝั่งหนึ่ง</b>
+      <pre class="code" style="margin:8px 0">python device_simulator.py --device terumo_br500 --port COM4</pre>
+      หรืออยากดูเฟรมเฉย ๆ ไม่ต้องมีพอร์ตเลย
+      <pre class="code" style="margin:8px 0">python device_simulator.py --dry-run --device terumo_br500 --sys 119 --dia 76 --pulse 83</pre></li>
+  <li><b>เปิด Hercules ที่อีกฝั่ง</b> ตั้ง COM3, <code>9600-8-N-1</code>, ติ๊ก HEX แล้วกด Open</li>
+  <li><b>กด Send once ในตัวจำลอง</b> ต้องเห็นไบต์ขึ้นใน Hercules ทันที
+      ถ้าเห็นแปลว่าตั้ง Hercules เป็นแล้ว — <strong>พิสูจน์ตรงนี้ให้ผ่านก่อนไปเจอเครื่องจริง</strong></li>
+</ol>
+
+<p>ตัวจำลองขับด้วย Device Profile จากบทที่ 8 จึงจำลองได้ทุกเครื่องที่มี profile
+เลือกจากช่อง Device บนหน้าจอ</p>
+</section>
+
+
+<section class="ch" id="c14">
+<h3><span class="n">14</span>จุดที่ยังไม่ยืนยันของ BR-500 <span class="chip un">⚠ ยังไม่ยืนยัน</span></h3>
+
+<p>อ่านค่าได้แล้ว แต่ยังไม่รู้ว่า<strong>ควรตอบอะไรกลับไปหาเครื่อง</strong>
+โค้ดที่มีอยู่ยังเป็นการไล่ลองคำตอบ 11 แบบ ไม่มีบันทึกว่าตัวไหนถูก</p>
+
+<p>ถ้าคุณมีเครื่องจริง ช่วยเดินตามตารางนี้แล้วบอกผลกลับมาได้ — เปิด Hercules
+ส่งทีละแบบหลังจากเครื่องส่งเฟรมออกมา แล้วดูว่ามีอะไรตอบกลับ</p>
+
+<div class="tw sheet">
+<table>
+  <thead><tr><th>พิมพ์ใน Hercules</th><th>คือ</th><th>เห็นอะไรตอบกลับ</th><th>ใช่ไหม</th></tr></thead>
+  <tbody>
+    <tr><td><code>$06</code></td><td>ACK</td><td class="blank">…………………</td><td class="blank">☐</td></tr>
+    <tr><td><code>$15</code></td><td>NAK</td><td class="blank">…………………</td><td class="blank">☐</td></tr>
+    <tr><td><code>$05</code></td><td>ENQ</td><td class="blank">…………………</td><td class="blank">☐</td></tr>
+    <tr><td><code>$02$44$31$2C$03$A6</code></td><td>เฟรม <code>D1,</code></td><td class="blank">…………………</td><td class="blank">☐</td></tr>
+    <tr><td><code>$02$44$30$2C$03$A5</code></td><td>เฟรม <code>D0,</code></td><td class="blank">…………………</td><td class="blank">☐</td></tr>
+    <tr><td><code>$0D$0A</code></td><td>CR LF</td><td class="blank">…………………</td><td class="blank">☐</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>เรื่อง <strong>baud 9600 หรือ 19200</strong> ก็ยังไม่ได้ข้อสรุปเช่นกัน (ดูบทที่ 11)
+สองข้อนี้คือช่องว่างที่เหลืออยู่ของ BR-500</p>
+</section>
+
+
+<section class="ch" id="c15">
+<h3><span class="n">15</span>Omron HBP-9030: ตรวจก่อนว่าส่งได้ไหม <span class="chip un">⚠ ยังไม่ยืนยัน</span></h3>
+
+<div class="box warn">
+  <span class="bt">สถานะความรู้ ณ วันที่เขียน</span>
+  <p><strong>ไม่พบสเปกโปรโตคอล RS-232C ของ HBP-9030 ที่เผยแพร่สาธารณะ</strong>
+  ค้นแล้วเจอแต่คู่มือ RS-232 ของ PLC ยี่ห้อ Omron ซึ่งเป็นคนละผลิตภัณฑ์กันสิ้นเชิง</p>
+  <p style="margin-top:8px">คู่มือนี้จึง<strong>ไม่เดารูปแบบเฟรมของ Omron</strong>
+  แต่จะสอนวิธีหา และให้ profile ตั้งต้นที่ติดป้ายไว้ชัดว่ายังไม่ยืนยัน</p>
+</div>
+
+<p>เริ่มจากเดินตามผังบทที่ 10 กับเครื่องที่มีอยู่จริงตรงหน้า</p>
+<ul>
+  <li>ดูด้านหลังเครื่องว่ามีพอร์ตอะไรบ้าง ถ่ายรูปเก็บไว้</li>
+  <li>เปิดคู่มือหาคำว่า <code>RS-232C</code> / <code>Data output</code> /
+  <code>ช่องต่อเครื่องพิมพ์</code></li>
+  <li>เข้าเมนูตั้งค่าของเครื่อง ดูว่ามีตัวเลือกเปิด/ปิดการส่งข้อมูลไหม</li>
+</ul>
+
+<p>รุ่นระดับโรงพยาบาลแบบนี้<em>มักมี</em>ช่องส่งข้อมูล แต่ <strong>ต้องยืนยันจากตัวเครื่องจริง
+ห้ามเชื่อจากรุ่นใกล้เคียง</strong> เพราะผู้ผลิตมักตัดฟีเจอร์นี้ออกในรุ่นย่อย</p>
+</section>
+
+
+<section class="ch" id="c16">
+<h3><span class="n">16</span>Worksheet ถอดรหัส Omron</h3>
+
+<p>บทนี้ไม่มีคำตอบให้ มีแต่ช่องให้กรอก เดินตามบทที่ 6 แล้วเติมลงไป
+เมื่อกรอกครบ คุณจะได้ Device Profile ที่ใช้งานได้จริง</p>
+
+<h4>ขั้น 1 — ไล่ baud</h4>
+<div class="tw sheet">
+<table>
+  <thead><tr><th>baud</th><th>เห็นไบต์ไหม</th><th>อ่านออกไหม</th><th>ตัวอย่างไบต์ที่เห็น</th></tr></thead>
+  <tbody>
+    <tr><td class="num">9600</td><td class="blank">☐</td><td class="blank">☐</td><td class="blank">…………………………………</td></tr>
+    <tr><td class="num">19200</td><td class="blank">☐</td><td class="blank">☐</td><td class="blank">…………………………………</td></tr>
+    <tr><td class="num">38400</td><td class="blank">☐</td><td class="blank">☐</td><td class="blank">…………………………………</td></tr>
+    <tr><td class="num">115200</td><td class="blank">☐</td><td class="blank">☐</td><td class="blank">…………………………………</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h4>ขั้น 2 — เครื่องส่งเองหรือต้องขอ</h4>
+<p class="blank">☐ ส่งเองเมื่อวัดเสร็จ &nbsp;&nbsp; ☐ ต้องส่งคำสั่งขอ คำสั่งที่ได้ผลคือ …………………</p>
+
+<h4>ขั้น 3 — ขอบเฟรม</h4>
+<p>แปะ HEX dump ที่ได้ลงมา แล้ววงว่าเฟรมเริ่มและจบตรงไหน</p>
+<div class="hex" style="color:var(--ink-4)">…………………………………………………………………………………………
+…………………………………………………………………………………………
+…………………………………………………………………………………………</div>
+<p class="blank">ขึ้นต้นด้วย …………… &nbsp;·&nbsp; ลงท้ายด้วย …………… &nbsp;·&nbsp; ยาว …………… ไบต์</p>
+
+<h4>ขั้น 4 — วัด 3 ครั้ง จดค่าที่หน้าจอ</h4>
+<div class="tw sheet">
+<table>
+  <thead><tr><th>ครั้ง</th><th>SYS</th><th>DIA</th><th>PULSE</th><th>ไบต์ที่เปลี่ยนตำแหน่งไหน</th></tr></thead>
+  <tbody>
+    <tr><td class="num">1</td><td class="blank">……</td><td class="blank">……</td><td class="blank">……</td><td class="blank">………………………</td></tr>
+    <tr><td class="num">2</td><td class="blank">……</td><td class="blank">……</td><td class="blank">……</td><td class="blank">………………………</td></tr>
+    <tr><td class="num">3</td><td class="blank">……</td><td class="blank">……</td><td class="blank">……</td><td class="blank">………………………</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h4>ขั้น 5 — ยืนยันด้วยสูตร MAP</h4>
+<p>คำนวณ (SYS + 2 × DIA) ÷ 3 จากค่าครั้งที่ 1 แล้วหาตัวเลขนั้นในเฟรม</p>
+<p class="blank">ได้ …………… &nbsp;·&nbsp; เจอที่ฟิลด์ที่ …………… &nbsp;·&nbsp; ☐ ตรง ☐ ไม่เจอ (เครื่องอาจไม่ส่ง MAP)</p>
+
+<h4>ขั้น 6 — checksum</h4>
+<p class="blank">☐ ไม่มี &nbsp;&nbsp; ☐ ผลรวม &amp; 0xFF &nbsp;&nbsp; ☐ XOR &nbsp;&nbsp; ☐ อื่น ……………</p>
+
+<h4>สรุปเป็น Device Profile</h4>
+<pre class="code">{
+  "name": "Omron HBP-9030",
+  "verified": true,            ← เปลี่ยนเป็น true เมื่อกรอกครบและทดสอบผ่าน
+  "port":    { "baud": ____, "dataBits": 8, "parity": "none", "stopBits": 1 },
+  "framing": { "stx": "____", "etx": "____",
+               "checksum": "____", "lineTerminator": "____" },
+  "body":    { "delimiter": ",", "recordId": "____", "minFields": __ },
+  "fields":  { "sys": __, "dia": __, "pulse": __, "map": __ }
+}</pre>
+</section>
+
+
+<section class="ch" id="c17">
+<h3><span class="n">17</span>จำลอง Omron HBP-9030</h3>
+
+<p>ตัวจำลองใช้ Device Profile เดียวกับตัวอ่าน จึงจำลอง Omron ได้ทันทีโดยไม่ต้องเขียนโปรแกรมใหม่</p>
+
+<pre class="code">python device_simulator.py --device omron_hbp9030 --port COM4
+python device_simulator.py --dry-run --device omron_hbp9030 --sys 142 --dia 92 --pulse 88</pre>
+
+<p>เฟรมที่ได้จาก profile ตั้งต้นปัจจุบัน</p>
+<div class="hex"><span class="f">02</span> 30 30 30 30 2C 30 30 30 30 2C 32 36 30 39 31 33 2C 32 30 35 32 32 30 2C
+30 30 30 30 2C 30 30 30 30 2C 30 30 30 30 2C <span class="v">31 34 32</span> 2C <span class="v">30 39 32</span> 2C <span class="v">30 38 38</span> <span class="f">03</span> <span class="c">0D 0A</span></div>
+<pre class="code">&lt;STX&gt;0000,0000,260913,205220,0000,0000,0000,142,092,088&lt;ETX&gt;&lt;CR&gt;&lt;LF&gt;
+                                              SYS  DIA  PULSE</pre>
+
+<div class="box warn">
+  <span class="bt">⚠ profile นี้อนุมานมา ไม่ใช่สเปกจริงของ Omron</span>
+  <p>ที่มาของการอนุมาน มาจากโค้ดของแอปคีออสก์เอง 2 จุด</p>
+  <ol style="margin:8px 0 0">
+    <li>คอมเมนต์ในตัวจัดการพอร์ตระบุว่า <em>"เครื่องชั่ง (BAM) / AND / Omron:
+    จบบรรทัดด้วย <code>\r</code> หรือ <code>\n</code> เช่น <code>&lt;STX&gt;DATA&lt;ETX&gt;\r\n</code>"</em></li>
+    <li>ตัวแยกข้อมูลที่ใช้กับทุกเครื่องที่ไม่ใช่ Terumo กำหนดว่าต้องมีอย่างน้อย
+    <strong>10 ฟิลด์คั่นด้วยจุลภาค</strong> และหยิบ <code>sys = ฟิลด์ที่ 7</code>,
+    <code>dia = ฟิลด์ที่ 8</code>, <code>pulse = ฟิลด์ที่ 9</code></li>
+  </ol>
+  <p style="margin-top:8px"><strong>ยังไม่รู้:</strong> ฟิลด์ 0–6 คืออะไร,
+  เครื่องส่ง MAP มาด้วยไหมและอยู่ตรงไหน, มี checksum ไหมและใช้สูตรใด,
+  และโค้ดนั้นอาจเขียนขึ้นสำหรับ AND TM-2655 แล้วถูกใช้กับ Omron ต่อ ๆ กันมา</p>
+  <p style="margin-top:8px">ตัวจำลองจะขึ้นแถบสีส้มเตือนเรื่องนี้บนหน้าจอตลอดเวลา
+  จนกว่าจะแก้ <code>"verified": true</code> ในไฟล์ profile</p>
+</div>
+
+<h4>เกณฑ์ว่าจำลองสำเร็จ</h4>
+<ol class="steps">
+  <li><b>ชุดทดสอบผ่าน</b> <code>python test_profiles.py</code> — สร้างเฟรมแล้วแยกกลับ
+      ต้องได้ค่าเดิมครบทุกฟิลด์</li>
+  <li><b>Hercules เห็นตรงกับ profile</b> เปิดตัวจำลองฝั่งหนึ่ง Hercules อีกฝั่ง
+      HEX ที่เห็นต้องตรงกับที่ profile กำหนดทุกไบต์</li>
+  <li><b>ตรงกับเครื่องจริง</b> <span class="chip un">⚠ ยังทำไม่ได้</span>
+      เอา dump จากเครื่อง Omron จริงมาวางเทียบกับของตัวจำลอง ต้องเหมือนกันไบต์ต่อไบต์
+      ยกเว้นวันเวลาและค่าที่วัดได้ — <strong>ขั้นนี้รอ capture จากเครื่องจริง</strong></li>
+</ol>
+</section>
+
+
+<section class="ch" id="c18">
+<h3><span class="n">18</span>เทียบ 2 เครื่อง</h3>
+
+<div class="tw">
+<table>
+  <thead><tr><th></th><th>Terumo BR-500</th><th>Omron HBP-9030</th></tr></thead>
+  <tbody>
+    <tr><td>สถานะโปรโตคอล</td>
+        <td><span class="chip ok">✓ ถอดรหัสแล้ว</span></td>
+        <td><span class="chip un">⚠ ต้องถอดเอง</span></td></tr>
+    <tr><td>baud</td><td class="num">9600 หรือ 19200 (ยังไม่สรุป)</td><td>ต้องไล่หา</td></tr>
+    <tr><td>ตระกูลเฟรม</td><td>STX/ETX + ผลรวม 8 บิต ไม่มี CR/LF</td><td>อนุมานว่า CR/LF</td></tr>
+    <tr><td>ตำแหน่ง SYS</td><td class="num">ฟิลด์ที่ 4</td><td class="num">ฟิลด์ที่ 7 (อนุมาน)</td></tr>
+    <tr><td>ส่ง MAP มาด้วยไหม</td><td>ส่ง ที่ฟิลด์ 5</td><td>ยังไม่ทราบ</td></tr>
+    <tr><td>ตัวจำลอง</td><td>มี ใช้ได้</td><td>มี แต่ profile ยังไม่ยืนยัน</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="box key">
+  <span class="bt">ข้อสรุปของทั้งภาค</span>
+  <p><strong>วิธีการเหมือนกันทุกเครื่อง ต่างกันแค่ profile</strong>
+  ไม่ว่าจะเป็นเครื่องยี่ห้อไหน รุ่นไหน ขั้นตอนคือ: ตรวจว่าส่งได้ไหม → ไล่ baud →
+  หาขอบเฟรม → วัดค่าที่รู้คำตอบ → ยืนยันด้วยสูตร → หา checksum → กรอกเป็น profile
+  เมื่อคุ้นกับลำดับนี้แล้ว เครื่องใหม่จะใช้เวลาแค่ครึ่งวัน</p>
+</div>
+</section>
+
+
+<!-- ==================== ภาค 3 ==================== -->
+<div class="part-head">
+  <div class="part-num">ภาค 3</div>
+  <h2>ต่อเป็นระบบ Smart OPD</h2>
+  <p>อ่านค่าจากเครื่องได้แล้วยังไม่พอ ค่าต้องรู้ว่าเป็นของใคร และต้องถูกบันทึกไว้</p>
+</div>
+
+<section class="ch" id="c19">
+<h3><span class="n">19</span>จุดยืน: จำลองทั้งเส้น</h3>
+
+<figure>
+<svg viewBox="0 0 640 330" role="img" aria-label="ผังการทำงานตั้งแต่กรอก HN จนบันทึกค่าความดัน">
+  <g font-family="var(--font-sans)" font-size="13">
+    <!-- 1 -->
+    <rect x="20" y="16" width="250" height="44" rx="6" fill="var(--surface-2)" stroke="var(--line)"/>
+    <text x="36" y="36" fill="var(--ink)" font-weight="600" font-size="13">1 · กรอก HN</text>
+    <text x="36" y="52" fill="var(--ink-3)" font-size="12">พยาบาลพิมพ์เลขประจำตัวคนไข้</text>
+    <path d="M145 60 L145 76" stroke="var(--ink-4)" stroke-width="1.5" marker-end="url(#ar)"/>
+
+    <!-- 2 -->
+    <rect x="20" y="78" width="250" height="48" rx="6" fill="var(--warn-tint)" stroke="var(--warn)" stroke-opacity=".4"/>
+    <text x="36" y="98" fill="var(--ink)" font-weight="600" font-size="13">2 · HIS Adapter</text>
+    <text x="36" y="114" fill="var(--ink-3)" font-size="12">คืนชื่อ–สกุล · จำลอง</text>
+    <path d="M145 126 L145 142" stroke="var(--ink-4)" stroke-width="1.5" marker-end="url(#ar)"/>
+
+    <!-- 3 -->
+    <rect x="20" y="144" width="250" height="44" rx="6" fill="var(--surface-2)" stroke="var(--line)"/>
+    <text x="36" y="164" fill="var(--ink)" font-weight="600" font-size="13">3 · ยืนยันตัวคนไข้</text>
+    <text x="36" y="180" fill="var(--ink-3)" font-size="12">เห็นชื่อบนจอ แล้วกดเริ่มวัด</text>
+    <path d="M145 188 L145 204" stroke="var(--ink-4)" stroke-width="1.5" marker-end="url(#ar)"/>
+
+    <!-- 4 -->
+    <rect x="20" y="206" width="250" height="48" rx="6" fill="var(--brand-tint)" stroke="var(--brand)" stroke-opacity=".45"/>
+    <text x="36" y="226" fill="var(--ink)" font-weight="600" font-size="13">4 · เครื่องวัดความดัน</text>
+    <text x="36" y="242" fill="var(--brand-dark)" font-size="12">RS-232 · ของจริง</text>
+    <path d="M145 254 L145 270" stroke="var(--ink-4)" stroke-width="1.5" marker-end="url(#ar)"/>
+
+    <!-- 5 -->
+    <rect x="20" y="272" width="250" height="44" rx="6" fill="var(--brand-tint)" stroke="var(--brand)" stroke-opacity=".45"/>
+    <text x="36" y="292" fill="var(--ink)" font-weight="600" font-size="13">5 · แยกเฟรมตาม profile</text>
+    <text x="36" y="308" fill="var(--brand-dark)" font-size="12">SYS · MAP · DIA · PULSE</text>
+
+    <!-- 6 -->
+    <path d="M270 294 L330 294" stroke="var(--ink-4)" stroke-width="1.5" marker-end="url(#ar)"/>
+    <rect x="336" y="272" width="250" height="44" rx="6" fill="var(--warn-tint)" stroke="var(--warn)" stroke-opacity=".4"/>
+    <text x="352" y="292" fill="var(--ink)" font-weight="600" font-size="13">6 · ผูกกับ HN แล้วบันทึก</text>
+    <text x="352" y="308" fill="var(--ink-3)" font-size="12">ที่เก็บจำลอง</text>
+
+    <!-- คำอธิบายสี -->
+    <rect x="336" y="36" width="250" height="180" rx="8" fill="var(--surface-2)" stroke="var(--line)"/>
+    <text x="356" y="62" fill="var(--ink)" font-weight="700" font-size="14">ช่วงไหนจริง ช่วงไหนจำลอง</text>
+    <rect x="356" y="80" width="14" height="14" rx="3" fill="var(--brand-tint)" stroke="var(--brand)" stroke-opacity=".5"/>
+    <text x="378" y="92" fill="var(--ink-2)" font-size="12.5">ของจริง — เครื่องกับโปรโตคอล</text>
+    <rect x="356" y="106" width="14" height="14" rx="3" fill="var(--warn-tint)" stroke="var(--warn)" stroke-opacity=".5"/>
+    <text x="378" y="118" fill="var(--ink-2)" font-size="12.5">จำลอง — HIS กับที่เก็บข้อมูล</text>
+    <text x="356" y="150" fill="var(--ink-3)" font-size="12.5">ช่วงที่จำลองคือช่วงที่ต่างกัน</text>
+    <text x="356" y="168" fill="var(--ink-3)" font-size="12.5">ทุกโรงพยาบาล วันที่ต่อของจริง</text>
+    <text x="356" y="186" fill="var(--ink)" font-size="12.5" font-weight="600">แก้แค่ 2 จุด ไม่แตะส่วนอื่น</text>
+  </g>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--ink-4)"/>
+    </marker>
+  </defs>
+</svg>
+</figure>
+
+<p>ทำไมถึงจำลองช่วง 2 กับ 6 แทนที่จะต่อของจริง — มีเหตุผล 3 ข้อ</p>
+<ol>
+  <li><strong>HIS แต่ละโรงพยาบาลไม่เหมือนกัน</strong> เขียนเจาะจงตัวใดตัวหนึ่ง
+  คู่มือนี้ก็จะใช้ได้แค่ที่เดียว</li>
+  <li><strong>ต่อ HIS จริงต้องรออนุมัติ</strong> ถ้ารอให้ได้สิทธิ์ก่อนถึงจะเริ่มพัฒนา
+  ส่วนใหญ่จะไม่ได้เริ่ม</li>
+  <li><strong>เผยแพร่ได้อย่างปลอดภัย</strong> ไม่มีข้อมูลคนไข้จริงเข้ามาเกี่ยวข้องเลยแม้แต่นิดเดียว
+  ทุกคนที่อ่านทำตามได้ที่บ้าน</li>
+</ol>
+</section>
+
+
+<section class="ch" id="c20">
+<h3><span class="n">20</span>HN → ชื่อ-สกุล ด้วย HIS จำลอง</h3>
+
+<h4>20.1 สัญญาคือหัวใจ ไม่ใช่ตัวโค้ด</h4>
+<p>สิ่งเดียวที่ระบบส่วนอื่นต้องรู้เกี่ยวกับ HIS คือหน้าตาข้อมูลเข้าและออก
+ถ้าล็อกตรงนี้ไว้ได้ ข้างในจะเป็นอะไรก็ได้ — จำลองวันนี้ ของจริงวันหน้า</p>
+
+<pre class="code">เข้า:   hn (ข้อความ)
+
+ออก:   { hn, title, firstName, lastName, gender, birthDate, found }
+
+ผิดพลาด: ต้องแยกให้ได้ 3 แบบ
+         · ไม่พบ HN นี้        → บอกให้พิมพ์ใหม่
+         · เชื่อมต่อไม่ได้      → บอกให้เรียกช่าง แล้วเปิดทางพิมพ์มือ
+         · รอนานเกินกำหนด      → ให้ลองใหม่ได้</pre>
+
+<div class="box key">
+  <span class="bt">คืนเฉพาะฟิลด์ที่จำเป็นต่อการยืนยันตัวคนไข้</span>
+  <p>ไม่ใช่ทั้ง record ของคนไข้ เป็นนิสัยที่ควรติดตั้งแต่ตอนจำลอง
+  จะได้ไม่พลาดตอนต่อของจริง — ทั้งเรื่องความเป็นส่วนตัวและเรื่องภาระของฐานข้อมูล</p>
+</div>
+
+<h4>20.2 ทำ HIS จำลอง — เลือกทางที่ถนัด</h4>
+<p><strong>ทาง ก. ไฟล์ JSON</strong> เริ่มได้ใน 5 นาที เหมาะกับตอนเริ่ม</p>
+<pre class="code">{
+  "000001": { "title":"นาย", "firstName":"ทดสอบ", "lastName":"ระบบหนึ่ง",
+              "gender":"ช", "birthDate":"2510-03-15" }
+}</pre>
+
+<p><strong>ทาง ข. Google Sheet ผ่าน Apps Script</strong> แก้ข้อมูลทดสอบได้จาก Sheet
+โดยไม่ต้องแก้โค้ด ถ้าเคยทำพอร์ทัลแบบนี้แล้วก็ลอกโครงเดิมมาได้เลย
+เปลี่ยนจากฟังก์ชันอ่านรายการโปรแกรม เป็น <code>getPatientByHN(hn)</code></p>
+<p>ตั้งคอลัมน์: <code>HN | คำนำหน้า | ชื่อ | นามสกุล | เพศ | วันเกิด</code></p>
+
+<h4>20.3 ชุดข้อมูลทดสอบที่ควรมี</h4>
+<p>ออกแบบให้ครอบเคสที่ทำให้ระบบพัง ไม่ใช่แค่เคสที่ทำงานได้</p>
+<div class="tw">
+<table>
+  <thead><tr><th>HN</th><th>ข้อมูล</th><th>ใช้ทดสอบว่า</th></tr></thead>
+  <tbody>
+    <tr><td><code>000001</code></td><td>นาย ทดสอบ ระบบหนึ่ง</td><td>เคสปกติ ทำงานได้</td></tr>
+    <tr><td><code>000002</code></td><td>ชื่อยาวมาก ๆ เกินสิบห้าตัวอักษร</td><td>จอล้นไหม ตัดคำถูกไหม</td></tr>
+    <tr><td><code>000003</code></td><td>ชื่อมีวรรค · ไม้ยมก ๆ</td><td>อักขระพิเศษแสดงเพี้ยนไหม</td></tr>
+    <tr><td><code>999999</code></td><td>— ไม่มีในระบบ —</td><td>ขึ้นข้อความบอกชัดไหม</td></tr>
+    <tr><td>(เว้นว่าง)</td><td>—</td><td>กดค้นหาโดยไม่กรอก ระบบพังไหม</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="box stop">
+  <span class="bt">ใช้ชื่อสมมติล้วน</span>
+  <p>ห้ามเอาข้อมูลคนไข้จริงมาใส่ แม้แต่ตอนทดสอบ แม้แต่ชื่อเดียว
+  ไฟล์ทดสอบมีนิสัยหลุดขึ้น GitHub ได้เสมอ</p>
+</div>
+
+<h4>20.4 จุดสลับไป HIS จริง</h4>
+<div class="box info">
+  <span class="bt">📌 Extension Point</span>
+  <p>วันที่ต้องต่อของจริง <strong>แก้ที่ฟังก์ชัน <code>getPatientByHN()</code> ที่เดียว</strong>
+  ไม่ต้องแตะส่วนอื่นของระบบเลย ข้างในจะเป็น query ฐานข้อมูล เรียก API ของ HIS
+  หรืออ่านตารางกลางก็ได้ ตราบใดที่คืนค่าตามสัญญาในข้อ 20.1</p>
+  <p style="margin-top:8px">สองเรื่องที่ต้องเตรียมตอนนั้น: คุยกับทีม HIS เรื่องสิทธิ์เข้าถึงก่อน
+  และ<strong>ต้องมีทางพิมพ์มือเป็นทางหนีไฟเสมอ</strong> เพราะวันที่ HIS ล่ม
+  คนไข้ยังต้องได้รับการตรวจ</p>
+</div>
+
+<h4>20.5 ทดสอบช่วงนี้แยกเดี่ยวก่อน</h4>
+<p>เดินตามตารางในข้อ 20.3 ให้ครบทั้ง 5 เคส ต้องได้ผลต่างกันชัดเจน
+<strong>ก่อนไปแตะเครื่องวัด</strong> ถ้าข้ามขั้นนี้ แล้วต่อทั้งระบบพร้อมกัน
+จะแยกไม่ออกว่าที่พังคือช่วงไหน</p>
+</section>
+
+
+<section class="ch" id="c21">
+<h3><span class="n">21</span>ผูกค่ากับคนไข้แล้วบันทึก</h3>
+
+<div class="box stop">
+  <span class="bt">จังหวะที่เสี่ยงบันทึกผิดคนมากที่สุด</span>
+  <p>ค่าความดันที่ไปอยู่กับคนไข้ผิดคนอันตรายกว่าไม่มีค่าเลย เพราะมันดูน่าเชื่อถือ
+  กฎ 4 ข้อนี้ต้องมีทุกข้อ</p>
+</div>
+
+<ul>
+  <li><strong>ล็อก HN ก่อนกดเริ่มวัด</strong> ค่าที่เข้ามาหลังจากนั้นผูกกับ HN นั้นเท่านั้น</li>
+  <li><strong>เปลี่ยน HN กลางคัน ต้องล้างค่าที่ค้างอยู่ทิ้งทันที</strong>
+  นี่คือทางที่ค่าคนก่อนหน้าจะติดไปกับคนถัดไป</li>
+  <li><strong>ค่าที่เข้ามาโดยยังไม่ได้เลือกคนไข้ ให้พักไว้ ห้ามบันทึกอัตโนมัติ</strong>
+  แสดงบนจอได้ แต่ต้องเลือกคนไข้ก่อนถึงจะบันทึกได้</li>
+  <li><strong>มีหน้ายืนยันเสมอ</strong> แสดงชื่อ-สกุล คู่กับค่าที่วัดได้ ก่อนกดบันทึก</li>
+</ul>
+
+<h4>21.1 โครงข้อมูลที่บันทึก</h4>
+<pre class="code">hn, ชื่อ, วันเวลาที่วัด, SYS, MAP, DIA, PULSE, รหัสเครื่อง, แหล่งที่มา</pre>
+
+<div class="box key">
+  <span class="bt">ฟิลด์ "แหล่งที่มา" สำคัญกว่าที่คิด</span>
+  <p>บันทึกว่าค่านี้มาจากเครื่องอัตโนมัติ (<code>auto</code>) หรือพิมพ์มือ (<code>manual</code>)
+  วันที่มีคนตั้งคำถามว่าตัวเลขนี้เชื่อได้ไหม ฟิลด์เดียวนี้ตอบได้ทันที
+  และยังใช้วัดได้ว่าระบบอัตโนมัติทำงานจริงกี่เปอร์เซ็นต์</p>
+</div>
+
+<h4>21.2 เก็บ MAP ด้วย</h4>
+<p>เครื่องส่ง MAP มาให้อยู่แล้ว แต่โค้ดทดลองรุ่นแรก ๆ ทิ้งทุกตัว
+เก็บไว้เถอะ — ไม่มีต้นทุนเพิ่ม และเป็นค่าที่มีความหมายทางคลินิก
+ถ้าเครื่องไม่ส่งมา คำนวณเองได้ด้วยสูตรเดิม</p>
+
+<h4>21.3 ใช้เวลาจากเฟรม ไม่ใช่เวลาของคอมพิวเตอร์</h4>
+<p>เฟรมมีวันเวลาของเครื่องมาด้วย ใช้ค่านั้น เพราะถ้านาฬิกาเครื่องวัดเพี้ยน
+เราจะเห็นและแก้ได้ แต่ถ้าเขียนทับด้วยเวลาคอมพิวเตอร์ ปัญหาจะถูกกลบไว้เฉย ๆ
+<strong>นาฬิกาเครื่องวัดเพี้ยนเป็นเรื่องที่เจอบ่อยมาก</strong></p>
+
+<h4>21.4 จุดสลับไปที่เก็บจริง</h4>
+<div class="box info">
+  <span class="bt">📌 Extension Point</span>
+  <p>เหมือนข้อ 20.4 — แก้ที่ฟังก์ชัน <code>saveVital()</code> ที่เดียว
+  ข้างในจะยิง API กลางหรือเขียนกลับ HIS ก็ได้
+  การเขียนกลับเข้า HIS เป็นงานที่ต้องผ่านการอนุมัติและทดสอบหนักที่สุดในระบบทั้งหมด
+  เพราะเขียนผิดแปลว่าแก้เวชระเบียนผิด</p>
+</div>
+</section>
+
+
+<!-- ==================== ภาค 4 ==================== -->
+<div class="part-head">
+  <div class="part-num">ภาค 4</div>
+  <h2>ทดสอบ แก้ปัญหา และภาคผนวก</h2>
+  <p>ส่วนที่จะกลับมาเปิดบ่อยที่สุดตอนของจริงไม่ทำงาน</p>
+</div>
+
+<section class="ch" id="c22">
+<h3><span class="n">22</span>ทดสอบทั้งเส้น</h3>
+
+<p>ทดสอบทีละช่วงก่อน แล้วค่อยต่อกัน ถ้าต่อทั้งหมดแล้วค่อยทดสอบ จะแยกไม่ออกว่าพังตรงไหน</p>
+
+<div class="tw">
+<table>
+  <thead><tr><th>ช่วง</th><th>ทดสอบว่า</th><th>ผ่านเมื่อ</th></tr></thead>
+  <tbody>
+    <tr><td>สายและพอร์ต</td><td>Hercules เห็นไบต์ไหม</td><td>เห็น <code>02</code>…<code>03</code> หรือ <code>0D 0A</code></td></tr>
+    <tr><td>Profile</td><td><code>python test_profiles.py</code></td><td>ผ่านทุกเคส</td></tr>
+    <tr><td>ตัวจำลอง ↔ Hercules</td><td>HEX ตรง profile ไหม</td><td>ตรงทุกไบต์</td></tr>
+    <tr><td>ตัวจำลอง ↔ ตัวอ่าน</td><td>อ่านค่ากลับได้ไหม</td><td>ได้ครบทุกฟิลด์ รวม MAP</td></tr>
+    <tr><td>HIS จำลอง</td><td>5 เคสในข้อ 20.3</td><td>ได้ผลต่างกันชัดเจนทั้ง 5</td></tr>
+    <tr><td>ผูกคนไข้</td><td>เปลี่ยน HN กลางคัน</td><td>ค่าเก่าถูกล้าง ไม่ติดไปกับคนใหม่</td></tr>
+    <tr><td>ทั้งเส้น</td><td>กรอก HN → วัด → บันทึก</td><td>ค่าไปอยู่ใต้ชื่อที่ถูกคน</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h4>เคสที่คนมักลืมทดสอบ</h4>
+<ul>
+  <li>วัดซ้ำคนเดิม 2 ครั้งติด — ได้ 2 ระเบียนหรือทับกัน</li>
+  <li>ถอดสาย USB ตอนกำลังวัด — โปรแกรมค้างหรือแจ้งเตือน</li>
+  <li>เสียบสายกลับเข้าไป — กลับมาทำงานเองไหม หรือต้องรีสตาร์ท</li>
+  <li>วัดแล้วเครื่องขึ้น error (วัดไม่สำเร็จ) — ส่งอะไรออกมา ระบบทำอย่างไร</li>
+</ul>
+</section>
+
+
+<section class="ch" id="c23">
+<h3><span class="n">23</span>แก้ปัญหาตามอาการ</h3>
+
+<div class="tw">
+<table>
+  <thead><tr><th>อาการ</th><th>น่าจะเป็นที่</th><th>วิธีพิสูจน์และแก้</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Hercules เปิดพอร์ตได้ แต่ไม่มีไบต์เลย</td>
+      <td>สาย / เมนูเครื่อง</td>
+      <td>สลับเป็นสายไขว้ (null-modem) ก่อนเสมอ → เช็คเมนูว่าเปิดโหมดส่งข้อมูลแล้ว →
+      เช็คว่าเปิดถูก COM</td>
+    </tr>
+    <tr>
+      <td>มีไบต์ แต่มั่วอ่านไม่ออก</td>
+      <td>baud ผิด</td>
+      <td>ไล่ <code>9600</code> → <code>19200</code> → <code>38400</code> → <code>115200</code>
+      ค่าที่ถูกจะให้รูปแบบซ้ำเดิมทุกครั้ง</td>
+    </tr>
+    <tr>
+      <td>เปิดพอร์ตไม่ได้ "Access is denied"</td>
+      <td>โปรแกรมอื่นจับอยู่</td>
+      <td>ปิด Hercules / แท็บ Chrome ที่ต่อ Web Serial / ตัวอ่านที่เปิดค้าง</td>
+    </tr>
+    <tr>
+      <td>Hercules เห็นข้อมูล แต่แอปไม่เห็น</td>
+      <td>โค้ดแล้ว</td>
+      <td>ตอนนี้แน่ใจแล้วว่าฮาร์ดแวร์ผ่าน ไปดูตัวตัดเฟรม — ดูแถวถัดไป</td>
+    </tr>
+    <tr>
+      <td>แอปค้างที่ "รอข้อมูล" ทั้งที่สายทำงาน</td>
+      <td>ตัวตัดเฟรม</td>
+      <td>ตัวตัดเฟรมรอเฉพาะ <code>\r\n</code> แต่เครื่องจบด้วย ETX
+      ต้องรองรับทั้งสองแบบ (ดูบทที่ 7)</td>
+    </tr>
+    <tr>
+      <td>อ่านได้บ้างไม่ได้บ้าง สุ่ม ๆ</td>
+      <td>อ่านทีละไบต์ไม่รอให้ครบเฟรม</td>
+      <td>ต้องสะสมไบต์ลงบัฟเฟอร์จนเจอขอบเฟรมก่อน แล้วค่อยแยก</td>
+    </tr>
+    <tr>
+      <td>ฟิลด์แรกเพี้ยน ตรวจชนิดเรคคอร์ดไม่ผ่าน</td>
+      <td>ไม่ได้ตัดไบต์ควบคุม</td>
+      <td>ตัดไบต์ที่ไม่ใช่อักขระอ่านได้ทิ้งก่อน split
+      ไม่งั้น checksum ไบต์สุดท้ายจะติดไปกับฟิลด์แรกของเฟรมถัดไป</td>
+    </tr>
+    <tr>
+      <td>checksum ไม่ตรงเป็นบางครั้ง</td>
+      <td>สายรบกวน หรือ baud คาบเส้น</td>
+      <td>เปลี่ยนสายให้สั้นลง เลี่ยงเดินคู่กับสายไฟ ลองลด baud</td>
+    </tr>
+    <tr>
+      <td>โปรแกรมพังตอนถอดสาย USB</td>
+      <td>ตัวอ่านพอร์ต</td>
+      <td>บน Windows จำนวนไบต์ที่รออยู่จะคืนค่า <code>-1</code> เมื่อพอร์ตมีปัญหา
+      ถ้าเอาค่านั้นไปใช้เป็นความยาวบัฟเฟอร์จะพังทันที
+      <strong>ต้องกันค่า ≤ 0 ไว้ก่อนเสมอ</strong> และอ่านแบบตั้งเวลาถามเป็นช่วง ๆ
+      แทนการผูกเป็นสตรีม</td>
+    </tr>
+    <tr>
+      <td>DIA สูงกว่าความจริงราว 15</td>
+      <td>สลับ index MAP กับ DIA</td>
+      <td>ตรวจด้วยสูตร (SYS + 2×DIA) ÷ 3 — ฟิลด์ที่ตรงกับสูตรคือ MAP ไม่ใช่ DIA</td>
+    </tr>
+    <tr>
+      <td>เวลาที่บันทึกไม่ตรงกับเวลาจริง</td>
+      <td>นาฬิกาเครื่องวัด</td>
+      <td>ตั้งนาฬิกาที่ตัวเครื่องใหม่ อย่าแก้ด้วยการเขียนทับด้วยเวลาคอมพิวเตอร์</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</section>
+
+
+<section class="ch" id="c24">
+<h3><span class="n">24</span>ภาคผนวก</h3>
+
+<h4>24.1 ตารางอ้างอิงเร็ว</h4>
+<div class="tw">
+<table>
+  <tbody>
+    <tr><th>พารามิเตอร์ที่ลองก่อน</th><td><code>9600-8-N-1</code> ไม่มี flow control</td></tr>
+    <tr><th>ลำดับไล่ baud</th><td class="num">9600 → 19200 → 38400 → 115200</td></tr>
+    <tr><th>ขา DB9</th><td>2 = RX · 3 = TX · 5 = GND</td></tr>
+    <tr><th>ไบต์ควบคุม</th><td><code>02</code> STX · <code>03</code> ETX · <code>0D 0A</code> CRLF · <code>06</code> ACK</td></tr>
+    <tr><th>สูตรยืนยันฟิลด์</th><td>MAP ≈ (SYS + 2 × DIA) ÷ 3</td></tr>
+    <tr><th>BCC แบบ Terumo</th><td>ผลรวมทุกไบต์รวม STX และ ETX แล้ว <code>&amp; 0xFF</code></td></tr>
+    <tr><th>ส่ง HEX ใน Hercules</th><td><code>$06</code> = ACK</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h4>24.2 เครื่องมือที่ใช้</h4>
+<div class="tw">
+<table>
+  <thead><tr><th>เครื่องมือ</th><th>ใช้ทำอะไร</th><th>หมายเหตุ</th></tr></thead>
+  <tbody>
+    <tr><td>Hercules SETUP utility</td><td>ดูไบต์ดิบ ส่งคำสั่งทดสอบ</td><td>HW-group · ฟรี · ไฟล์เดียว</td></tr>
+    <tr><td>com0com</td><td>สร้างคู่พอร์ตจำลอง</td><td>ฟรี · โอเพนซอร์ส</td></tr>
+    <tr><td>HHD Virtual Serial Port Tools</td><td>สร้างคู่พอร์ตจำลอง</td><td>ทางเลือกแทน com0com</td></tr>
+    <tr><td><code>device_simulator.py</code></td><td>จำลองเครื่องตาม profile</td><td>ในโปรเจกต์นี้</td></tr>
+    <tr><td><code>device_reader.py</code></td><td>อ่านค่าตาม profile</td><td>ในโปรเจกต์นี้</td></tr>
+    <tr><td><code>test_profiles.py</code></td><td>ทดสอบ profile</td><td>ในโปรเจกต์นี้</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h4>24.3 ก่อนนำไปใช้กับคนไข้จริง</h4>
+<p>คู่มือนี้พาไปถึงระบบที่ทำงานได้บนโต๊ะ ยังไม่ใช่ระบบที่พร้อมใช้กับคนไข้
+สิ่งที่ต้องทำเพิ่มอย่างน้อย</p>
+<ul>
+  <li>ต่อ HIS จริงผ่านสิทธิ์ที่ได้รับอนุมัติ พร้อมช่องทางพิมพ์มือสำรอง</li>
+  <li>ทดสอบคู่ขนานกับการจดมือ อย่างน้อยหนึ่งสัปดาห์ เทียบค่าทุกใบ</li>
+  <li>แผนรับมือเมื่อระบบล่มระหว่างคลินิก — ต้องไม่ทำให้คนไข้รอ</li>
+  <li>ผ่านการพิจารณาของคณะกรรมการที่เกี่ยวข้องตามระเบียบของโรงพยาบาล</li>
+  <li>บันทึกว่าใครบันทึกค่า เมื่อไร แก้ไขอะไรบ้าง</li>
+</ul>
+
+<h4>24.4 ช่วยกันเติมให้สมบูรณ์</h4>
+<p>ช่องว่างที่ยังเหลือและอยากได้ข้อมูลจากคนที่มีเครื่อง</p>
+<ul>
+  <li><strong>HEX dump จาก Omron HBP-9030 จริง</strong> — ชิ้นที่ขาดมากที่สุด
+  ได้มาเมื่อไร profile เปลี่ยนจากอนุมานเป็นยืนยันได้ทันที</li>
+  <li><strong>baud ที่ถูกต้องของ Terumo BR-500</strong> — 9600 หรือ 19200</li>
+  <li><strong>ไบต์ตอบกลับที่ BR-500 ยอมรับ</strong> — ตารางในบทที่ 14</li>
+  <li><strong>ยี่ห้อตัวแปลง USB-to-Serial ที่ทดสอบแล้วใช้ได้</strong></li>
+</ul>
+
+<p class="foot">
+เอกสารนี้เผยแพร่เพื่อการศึกษา ข้อมูลคนไข้ทั้งหมดที่ปรากฏเป็นข้อมูลสมมติ<br>
+ส่วนที่ติดป้าย <span class="chip un">⚠ ยังไม่ยืนยัน</span> ยังไม่ได้ทดสอบกับเครื่องจริง
+— อย่านำไปอ้างเป็นสเปกของผู้ผลิต<br>
+OpenMed · Smart OPD ตอนที่ 1
+</p>
+</section>
+
+</main>
+</div>
+</div>

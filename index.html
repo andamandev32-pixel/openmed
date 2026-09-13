@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenMed — เทคโนโลยีโรงพยาบาลที่ทำตามได้จริง</title>
+<meta name="description" content="คู่มือและความรู้ด้านเทคโนโลยีโรงพยาบาล เขียนให้ทำตามได้จริง แจกฟรี">
+
+<!-- ให้ลิงก์ที่แชร์ใน Facebook แสดงการ์ดสวย ๆ -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="OpenMed — เทคโนโลยีโรงพยาบาลที่ทำตามได้จริง">
+<meta property="og:description" content="คู่มือดึงข้อมูลจากเครื่องมือแพทย์ผ่าน RS-232 ตั้งแต่จับสายเส้นแรกจนค่าวิ่งเข้าระบบเอง ทำตามได้โดยไม่ต้องมีเครื่องจริง">
+<meta property="og:locale" content="th_TH">
+<meta name="twitter:card" content="summary">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&display=swap">
+<style>
+/* โทเคนธีม — ต้นฉบับ brand/tokens.css ฝังไว้เพื่อให้หน้านี้โหลดไฟล์เดียว */
+:root{
+  --font-sans:'Anuphan',Tahoma,Arial,sans-serif;
+  --font-mono:'Consolas','Courier New',ui-monospace,monospace;
+  --brand:#058739; --brand-dark:#046C2E; --brand-tint:#EFFBF4;
+  --info:#3579EA; --info-tint:#EEF4FE;
+  --ink:#111111; --ink-2:#444444; --ink-3:#666666; --ink-4:#888888;
+  --line:#DFDFDF; --line-soft:#F0F0F0;
+  --surface:#FFFFFF; --surface-2:#F5F5F5; --surface-3:#F0F0F0;
+  --warn:#B45309; --warn-tint:#FFF7ED;
+  --radius:6px; --radius-lg:12px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --brand:#34C26B; --brand-dark:#6FDC97; --brand-tint:#0E2A1A;
+    --info:#7FB0FF; --info-tint:#14213A;
+    --ink:#F2F2F2; --ink-2:#D2D2D2; --ink-3:#A8A8A8; --ink-4:#8A8A8A;
+    --line:#333333; --line-soft:#262626;
+    --surface:#181818; --surface-2:#121212; --surface-3:#202020;
+    --warn:#E9A13B; --warn-tint:#2B1E0C;
+  }
+}
+:root[data-theme="dark"]{
+  --brand:#34C26B; --brand-dark:#6FDC97; --brand-tint:#0E2A1A;
+  --info:#7FB0FF; --info-tint:#14213A;
+  --ink:#F2F2F2; --ink-2:#D2D2D2; --ink-3:#A8A8A8; --ink-4:#8A8A8A;
+  --line:#333333; --line-soft:#262626;
+  --surface:#181818; --surface-2:#121212; --surface-3:#202020;
+  --warn:#E9A13B; --warn-tint:#2B1E0C;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; font-family:var(--font-sans); background:var(--surface);
+  color:var(--ink-2); line-height:1.75; font-size:16px;
+}
+img{max-width:100%}
+.wrap{max-width:720px; margin:0 auto; padding-inline:20px; padding-block:0 72px}
+
+header{padding-block:56px 34px; border-bottom:1px solid var(--line); margin-bottom:40px}
+.brandmark{
+  display:inline-flex; align-items:baseline; gap:2px; font-size:27px;
+  font-weight:700; color:var(--ink); letter-spacing:-.015em; margin:0 0 14px
+}
+.brandmark span{color:var(--brand)}
+header p{margin:0; color:var(--ink-3); font-size:17px; max-width:56ch}
+
+.section-label{
+  font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-4); font-weight:600; margin:0 0 16px
+}
+
+/* การ์ดซีรีส์ — ตัวเดียวที่เป็นลิงก์ จึงลงทุนกับมันเต็มที่ */
+a.card{
+  display:block; text-decoration:none; color:inherit;
+  border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:26px 28px; background:var(--surface);
+  transition:border-color .15s ease, transform .15s ease;
+}
+a.card:hover{border-color:var(--brand); transform:translateY(-2px)}
+a.card:focus-visible{outline:2px solid var(--brand); outline-offset:3px}
+.card .kicker{
+  font-size:12.5px; font-weight:600; color:var(--brand);
+  letter-spacing:.05em; margin:0 0 8px
+}
+.card h2{
+  margin:0 0 10px; font-size:24px; line-height:1.35; color:var(--ink);
+  font-weight:700; text-wrap:balance; letter-spacing:-.01em
+}
+.card .desc{margin:0 0 18px; color:var(--ink-3); font-size:15.5px}
+.card ul{margin:0 0 20px; padding-left:20px; font-size:15px; color:var(--ink-2)}
+.card li{margin-bottom:5px}
+.card li::marker{color:var(--brand)}
+.card .go{
+  display:inline-flex; align-items:center; gap:7px; font-weight:600;
+  color:var(--brand-dark); font-size:15px
+}
+a.card:hover .go{gap:11px}
+.card .go svg{transition:transform .15s ease}
+
+.facts{
+  display:flex; flex-wrap:wrap; gap:8px 10px; margin:0 0 18px;
+  list-style:none; padding:0
+}
+.facts li{
+  font-size:12.5px; padding:3px 10px; border-radius:100px;
+  background:var(--surface-2); border:1px solid var(--line); color:var(--ink-3);
+  margin:0
+}
+.facts li.free{background:var(--brand-tint); border-color:var(--brand); color:var(--brand-dark); font-weight:600}
+
+/* การ์ดโค้ดวางถัดจากการ์ดคู่มือ — ต้องเว้นระยะให้เท่ากันทั้งสองใบ */
+a.card + a.card{margin-top:16px}
+a.card.code .kicker{color:var(--info)}
+a.card.code:hover{border-color:var(--info)}
+a.card.code .go{color:var(--info)}
+
+pre.snippet{
+  font-family:var(--font-mono); font-size:13.5px; line-height:1.75;
+  background:var(--surface-3); border:1px solid var(--line);
+  border-radius:var(--radius); padding:13px 15px; margin:0 0 16px;
+  overflow-x:auto; color:var(--ink-2); white-space:pre
+}
+
+.alt-dl{
+  margin:16px 0 0; font-size:14.5px; color:var(--ink-4); text-align:center
+}
+.alt-dl a{color:var(--info)}
+
+.upcoming{
+  margin-top:16px; border:1px dashed var(--line); border-radius:var(--radius-lg);
+  padding:22px 26px; color:var(--ink-4); font-size:15px; background:var(--surface-2)
+}
+.upcoming b{display:block; color:var(--ink-3); font-weight:600; margin-bottom:6px}
+
+.note{
+  margin-top:40px; border-left:3px solid var(--warn); background:var(--warn-tint);
+  padding:15px 19px; border-radius:0 var(--radius) var(--radius) 0; font-size:14.5px;
+  color:var(--ink-2)
+}
+.note b{color:var(--warn)}
+
+footer{
+  margin-top:48px; padding-top:26px; border-top:1px solid var(--line);
+  display:flex; flex-wrap:wrap; gap:10px 24px; align-items:center;
+  font-size:14.5px; color:var(--ink-4)
+}
+footer a{color:var(--info); text-decoration:none}
+footer a:hover{text-decoration:underline}
+footer .sep{color:var(--line)}
+@media (max-width:480px){
+  footer .sep{display:none}
+  footer{flex-direction:column; align-items:flex-start; gap:8px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="brandmark">Open<span>Med</span></p>
+  <p>ความรู้ด้านเทคโนโลยีโรงพยาบาล เขียนให้ทำตามได้จริง ไม่ใช่แค่อ่านแล้วผ่าน
+  แจกฟรีทั้งหมด</p>
+</header>
+
+<main>
+  <p class="section-label">ซีรีส์</p>
+
+  <a class="card" href="guide/">
+    <p class="kicker">ตอนที่ 1 · Smart OPD</p>
+    <h2>ดึงข้อมูลจากเครื่องมือแพทย์ผ่าน RS-232</h2>
+    <p class="desc">
+      เครื่องวัดความดันในโรงพยาบาลส่งข้อมูลออกมาตลอดเวลา แต่ส่วนใหญ่ไม่มีใครฟัง
+      คู่มือนี้พาไปตั้งแต่จับสายเส้นแรก จนค่าความดันวิ่งเข้าไปอยู่ใต้ชื่อคนไข้เอง
+    </p>
+    <ul class="facts">
+      <li class="free">แจกฟรี</li>
+      <li>24 บท</li>
+      <li>ภาษาไทย</li>
+      <li>ไม่ต้องมีเครื่องจริงก็ทำตามได้</li>
+    </ul>
+    <ul>
+      <li>พื้นฐาน RS-232 ที่ใช้ได้กับเครื่องยี่ห้อไหนก็ได้</li>
+      <li>วิธีถอดรหัสโปรโตคอลของเครื่องที่ไม่มีคู่มือ</li>
+      <li>กรณีศึกษา Terumo BR-500 และ Omron HBP-9030</li>
+      <li>ต่อเป็นระบบที่ผูกค่ากับคนไข้ได้</li>
+    </ul>
+    <span class="go">อ่านคู่มือ
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M3 8h9M8.5 4.5L12 8l-3.5 3.5" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+  </a>
+
+  <a class="card code" href="https://github.com/andamandev32-pixel/openmed/tree/main/code">
+    <p class="kicker">โค้ดตัวอย่าง</p>
+    <h2>ดาวน์โหลดไปต่อยอดได้เลย</h2>
+    <p class="desc">
+      ตัวอ่านค่า ตัวจำลองเครื่องวัดความดัน และชุดทดสอบ
+      เอาไปใช้ ดัดแปลง ต่อยอดได้ ไม่ต้องขออนุญาต
+    </p>
+    <ul class="facts">
+      <li class="free">ใช้ได้ฟรี</li>
+      <li>Python</li>
+      <li>ลองเล่นได้แม้ยังไม่มีเครื่อง</li>
+    </ul>
+    <pre class="snippet">pip install pyserial
+python device_simulator.py --dry-run --device terumo_br500</pre>
+    <p class="desc" style="margin-bottom:16px">
+      คำสั่งสองบรรทัดนี้แสดงให้เห็นว่าเครื่องวัดความดันส่งอะไรออกมา
+      โดยไม่ต้องมีเครื่อง ไม่ต้องมีสาย
+    </p>
+    <span class="go">ดูโค้ดบน GitHub
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M3 8h9M8.5 4.5L12 8l-3.5 3.5" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+  </a>
+
+  <p class="alt-dl">
+    หรือ <a href="https://github.com/andamandev32-pixel/openmed/archive/refs/heads/main.zip">ดาวน์โหลดทั้งหมดเป็น ZIP</a>
+    — ได้ทั้งโค้ดและคู่มือในไฟล์เดียว
+  </p>
+
+  <div class="upcoming">
+    <b>กำลังเขียน</b>
+    ตอนที่ 2 — เครื่องชั่งน้ำหนักและวัดส่วนสูง · ตอนที่ 3 — ประกอบตู้คีออสก์ทั้งตู้
+  </div>
+
+  <div class="note">
+    <b>หมายเหตุ</b> ข้อมูลคนไข้ทุกอย่างที่ปรากฏในคู่มือเป็นข้อมูลสมมติ
+    และส่วนที่ยังไม่ได้ทดสอบกับเครื่องจริงติดป้ายกำกับไว้ชัดเจนทุกจุด
+    — อย่านำไปอ้างเป็นสเปกของผู้ผลิต
+  </div>
+</main>
+
+<footer>
+  <a href="https://www.facebook.com/profile.php?id=61592183713173">เพจ Facebook</a>
+  <span class="sep">·</span>
+  <a href="https://github.com/andamandev32-pixel/openmed">โค้ดและต้นฉบับบน GitHub</a>
+  <span class="sep">·</span>
+  <span>เจอที่ผิดหรือมีข้อมูลเพิ่ม ทักมาได้</span>
+</footer>
+
+</div>
+</body>
+</html>

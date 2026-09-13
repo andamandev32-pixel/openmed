@@ -1,0 +1,91 @@
+{
+  "id": "omron_hbp9030",
+  "name": "Omron HBP-9030",
+  "verified": false,
+  "source": "อนุมานจาก Smart_OPD_Kiosk_V2: BloodPressureUtils.parse() + คอมเมนต์ใน SerialServer._open()",
+
+  "notes": [
+    "⚠️ PROFILE นี้ยังไม่ยืนยันกับเครื่องจริง — ห้ามนำไปอ้างเป็นสเปกของ Omron",
+    "ไม่พบสเปกโปรโตคอล RS-232C ของ HBP-9030 ที่เผยแพร่สาธารณะ",
+    "หลักฐานที่ 1 — คอมเมนต์ใน SerialServer._open(): 'เครื่องชั่ง (BAM) / AND / Omron: จบบรรทัดด้วย \\r หรือ \\n เช่น <STX>DATA<ETX>\\r\\n'",
+    "หลักฐานที่ 2 — BloodPressureUtils.parse() (parser ตัว default ของทุกเครื่องที่ไม่ใช่ Terumo): ต้องมีอย่างน้อย 10 ฟิลด์ คั่นด้วย ',' และหยิบ sys=parts[7] dia=parts[8] pul=parts[9]",
+    "ข้อควรระวัง — parse() อาจถูกเขียนขึ้นสำหรับ AND TM-2655 แล้วถูกใช้เป็น default ของ Omron ไปด้วย ไม่มีคอมเมนต์ระบุชัด",
+    "ยังไม่รู้: ฟิลด์ 0-6 คืออะไร, มี MAP ไหมและอยู่ index ใด, มี checksum ไหมและใช้สูตรใด, เครื่องส่งเองหรือต้องส่งคำสั่งขอ",
+    "วิธีเติมให้ครบ: เปิด Hercules โหมด HEX ดักเฟรมจริง แล้วเดินตามบทที่ 16 ของ SOP",
+    "เทคนิคยืนยันว่า map ฟิลด์ถูก: หาฟิลด์ที่มีค่า ≈ (SYS + 2×DIA) / 3 — นั่นคือ MAP"
+  ],
+
+  "unknownFields": {
+    "0": "อาจเป็น record id — ยังไม่ทราบ",
+    "1": "ยังไม่ทราบ",
+    "2": "อาจเป็นวันที่ — ยังไม่ทราบ",
+    "3": "อาจเป็นเวลา — ยังไม่ทราบ",
+    "4": "ยังไม่ทราบ",
+    "5": "ยังไม่ทราบ",
+    "6": "ยังไม่ทราบ (ถ้าเครื่องส่ง MAP มาด้วย มีโอกาสอยู่ตรงนี้)"
+  },
+
+  "port": {
+    "baud": 9600,
+    "dataBits": 8,
+    "parity": "none",
+    "stopBits": 1,
+    "alternateBauds": [19200, 38400, 115200]
+  },
+
+  "framing": {
+    "stx": "0x02",
+    "etx": "0x03",
+    "checksum": "none",
+    "checksumRange": "stx-to-etx",
+    "lineTerminator": "\r\n"
+  },
+
+  "body": {
+    "delimiter": ",",
+    "recordId": null,
+    "minFields": 10,
+    "template": [
+      "{f0}",
+      "{f1}",
+      "{date}",
+      "{time}",
+      "{f4}",
+      "{f5}",
+      "{f6}",
+      "{sys}",
+      "{dia}",
+      "{pulse}"
+    ]
+  },
+
+  "fields": {
+    "date": 2,
+    "time": 3,
+    "sys": 7,
+    "dia": 8,
+    "pulse": 9
+  },
+
+  "widths": {
+    "sys": 3,
+    "dia": 3,
+    "pulse": 3
+  },
+
+  "formats": {
+    "date": "%y%m%d",
+    "time": "%H%M%S"
+  },
+
+  "defaults": {
+    "f0": "0000",
+    "f1": "0000",
+    "f4": "0000",
+    "f5": "0000",
+    "f6": "0000",
+    "sys": 120,
+    "dia": 80,
+    "pulse": 75
+  }
+}

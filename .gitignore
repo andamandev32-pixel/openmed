@@ -1,0 +1,30 @@
+# ไฟล์ระบบปฏิบัติการ
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# เอดิเตอร์
+.vscode/
+.idea/
+*.swp
+*~
+
+# ไฟล์ชั่วคราวจากการทำงาน
+*.tmp
+.playwright-mcp/
+
+# ไฟล์ต้นฉบับงานตัดต่อ/ออกแบบ ที่ไฟล์ใหญ่เกินจะเก็บใน git
+# (ให้เก็บเฉพาะไฟล์ที่ export แล้วใน assets/graphics/)
+*.psd
+*.ai
+*.afdesign
+*.mp4
+*.mov
+
+# ความลับ — ห้าม commit เด็ดขาด
+.env
+.env.local
+
+# Python
+__pycache__/
+*.pyc

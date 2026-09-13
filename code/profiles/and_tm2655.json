@@ -1,0 +1,78 @@
+{
+  "id": "and_tm2655",
+  "name": "AND TM-2655",
+  "verified": false,
+  "source": "โครงเปล่า — Smart_OPD_Kiosk_V2 รองรับเครื่องนี้ (BloodPressureDevice.andTM2655) แต่ยังไม่มีข้อมูลเฟรม",
+
+  "notes": [
+    "⚠️ PROFILE นี้ยังไม่ยืนยันกับเครื่องจริง — เป็นโครงตั้งต้นเท่านั้น",
+    "kiosk ใช้ BloodPressureUtils.parse() ตัว default กับเครื่องนี้ (sys=parts[7] dia=parts[8] pul=parts[9], อย่างน้อย 10 ฟิลด์)",
+    "คอมเมนต์ใน SerialServer จัดกลุ่ม AND ไว้กับ Omron และเครื่องชั่ง BAM ว่าจบบรรทัดด้วย CR/LF",
+    "มีความเป็นไปได้ว่าเฟรมของ AND กับ Omron หน้าตาเหมือนกัน เพราะใช้ parser ตัวเดียวกัน — แต่ยังไม่มีหลักฐานยืนยัน",
+    "ต้อง capture ด้วย Hercules แล้วเดินตามบทที่ 16 ของ SOP เพื่อเติมให้ครบ"
+  ],
+
+  "port": {
+    "baud": 9600,
+    "dataBits": 8,
+    "parity": "none",
+    "stopBits": 1,
+    "alternateBauds": [19200, 38400, 115200]
+  },
+
+  "framing": {
+    "stx": "0x02",
+    "etx": "0x03",
+    "checksum": "none",
+    "checksumRange": "stx-to-etx",
+    "lineTerminator": "\r\n"
+  },
+
+  "body": {
+    "delimiter": ",",
+    "recordId": null,
+    "minFields": 10,
+    "template": [
+      "{f0}",
+      "{f1}",
+      "{date}",
+      "{time}",
+      "{f4}",
+      "{f5}",
+      "{f6}",
+      "{sys}",
+      "{dia}",
+      "{pulse}"
+    ]
+  },
+
+  "fields": {
+    "date": 2,
+    "time": 3,
+    "sys": 7,
+    "dia": 8,
+    "pulse": 9
+  },
+
+  "widths": {
+    "sys": 3,
+    "dia": 3,
+    "pulse": 3
+  },
+
+  "formats": {
+    "date": "%y%m%d",
+    "time": "%H%M%S"
+  },
+
+  "defaults": {
+    "f0": "0000",
+    "f1": "0000",
+    "f4": "0000",
+    "f5": "0000",
+    "f6": "0000",
+    "sys": 120,
+    "dia": 80,
+    "pulse": 75
+  }
+}
